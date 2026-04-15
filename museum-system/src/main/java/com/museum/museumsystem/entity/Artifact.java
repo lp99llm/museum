@@ -1,33 +1,65 @@
 package com.museum.museumsystem.entity;
 
-import lombok.Data;
-import javax.persistence.*;
-import java.util.Date;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import java.time.LocalDateTime;
 
-@Data
-@Entity
-@Table(name = "artifact")
+@TableName("artifact")
 public class Artifact {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(type = IdType.AUTO)
     private Long id;
+    private String code;
+    private String name;
+    private String category;
+    private String currentState;
+    private LocalDateTime createdTime;
 
-    private String code;          // 文物编号
-    private String name;          // 名称
-    private String category;      // 类别
-    private String era;           // 年代
-    private String location;      // 出土地点/存放位置
-    private String currentLocation;
-    private String description;
-    private String imageUrl;
+    public Long getId() {
+        return id;
+    }
 
-    @Enumerated(EnumType.STRING)
-    private ArtifactState currentState = ArtifactState.IN_STORAGE;
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date createdAt = new Date();
+    public String getCode() {
+        return code;
+    }
 
-    public enum ArtifactState {
-        ACQUIRED, IN_STORAGE, IN_EXHIBITION, IN_RESTORATION, ON_LOAN, DISPOSED
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public String getCurrentState() {
+        return currentState;
+    }
+
+    public void setCurrentState(String currentState) {
+        this.currentState = currentState;
+    }
+
+    public LocalDateTime getCreatedTime() {
+        return createdTime;
+    }
+
+    public void setCreatedTime(LocalDateTime createdTime) {
+        this.createdTime = createdTime;
     }
 }

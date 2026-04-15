@@ -1,11 +1,9 @@
 package com.museum.museumsystem.repository;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.museum.museumsystem.entity.User;
-import org.springframework.data.jpa.repository.JpaRepository;
-import java.util.Optional;
+import org.apache.ibatis.annotations.Mapper;
 
-public interface UserRepository extends JpaRepository<User, Long> {
-    Optional<User> findByUsername(String username);
-    boolean existsByUsername(String username);
-    boolean existsByEmail(String email);
+@Mapper
+public interface UserRepository extends BaseMapper<User> {
 }
