@@ -2,10 +2,12 @@ package com.museum.museumsystem.security;
 
 import com.museum.museumsystem.entity.User;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 public class UserPrincipal implements UserDetails {
 
@@ -23,11 +25,16 @@ public class UserPrincipal implements UserDetails {
 
     // ✅【修复：加上这个 create 方法！报错就靠它解决】
     public static UserPrincipal create(User user) {
+        // 将用户角色转换为 Spring Security 权限
+        List<SimpleGrantedAuthority> authorities = user.getRole() != null 
+            ? Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole()))
+            : Collections.emptyList();
+        
         return new UserPrincipal(
                 user.getId(),
                 user.getUsername(),
                 user.getPassword(),
-                Collections.emptyList()
+                authorities
         );
     }
 

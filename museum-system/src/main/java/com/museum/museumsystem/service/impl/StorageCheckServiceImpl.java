@@ -17,10 +17,16 @@ public class StorageCheckServiceImpl extends ServiceImpl<StorageCheckMapper, Sto
     public PageResult<StorageCheck> pageQuery(StorageCheckQueryDTO queryDTO) {
         Page<StorageCheck> page = new Page<>(queryDTO.getCurrent(), queryDTO.getSize());
         LambdaQueryWrapper<StorageCheck> wrapper = new LambdaQueryWrapper<>();
+
         wrapper.eq(queryDTO.getArtifactId() != null, StorageCheck::getArtifactId, queryDTO.getArtifactId())
+                .like(queryDTO.getArtifactCode() != null, StorageCheck::getArtifactCode, queryDTO.getArtifactCode())
+                .like(queryDTO.getArtifactName() != null, StorageCheck::getArtifactName, queryDTO.getArtifactName())
+                .eq(queryDTO.getCheckType() != null, StorageCheck::getCheckType, queryDTO.getCheckType())
                 .eq(queryDTO.getCheckResult() != null, StorageCheck::getCheckResult, queryDTO.getCheckResult())
-                .eq(queryDTO.getChecker() != null, StorageCheck::getChecker, queryDTO.getChecker())
-                .orderByDesc(StorageCheck::getCreatedTime);
+                .ge(queryDTO.getStartDate() != null, StorageCheck::getCheckDate, queryDTO.getStartDate())
+                .le(queryDTO.getEndDate() != null, StorageCheck::getCheckDate, queryDTO.getEndDate())
+                .orderByDesc(StorageCheck::getCheckDate);
+
         Page<StorageCheck> pageResult = this.page(page, wrapper);
         PageResult<StorageCheck> result = new PageResult<>();
         result.setCurrent(pageResult.getCurrent());

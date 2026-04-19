@@ -1,6 +1,8 @@
 package com.museum.museumsystem.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -13,11 +15,65 @@ import java.time.LocalDateTime;
 public class Disposal {
     @TableId(type = IdType.AUTO)
     private Long id;
+
     private Long artifactId;
+
+    private String artifactCode;
+
+    private String artifactName;
+
+    private String status;
+
+    private String currentStage;
+
+    private LocalDate applyDate;
+
+    private String applicant;
+
+    private String applyReason;
+
+    private String disposalType;
+
+    private String evaluationReport;
+
+    private String expertOpinion;
+
+    private LocalDate publicStartTime;
+
+    private LocalDate publicEndTime;
+
+    private String publicResult;
+
+    private String approvalOpinion;
+
+    private String approver;
+
+    private LocalDate approvalDate;
+
+    private String recordStatus;
+
+    private LocalDate recordDate;
+
+    private String recordOrganization;
+
     private LocalDate disposalDate;
-    private String disposalType; // 移交/销毁/退藏
-    private String reason;
-    private String approvalDoc;
-    private Long operator;
+
+    private String operator;
+
+    private String executionResult;
+
+    private String archiveNo;
+
+    private LocalDate archiveDate;
+
+    private String remarks;
+
+    @TableField(fill = FieldFill.INSERT)
+    private Long createdBy;
+
+    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdTime;
+
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    private LocalDateTime updatedTime;
 }

@@ -1,11 +1,27 @@
 package com.museum.museumsystem.dto.request;
 
 import lombok.Data;
+import java.time.LocalDate;
 
 @Data
 public class RestorationQueryDTO {
     private Long artifactId;
-    private String restorer;
+
+    private String artifactCode;
+
+    private String artifactName;
+
+    private String status;
+
+    private String currentStage;
+
+    private String restorationType;
+
+    private LocalDate startDate;
+
+    private LocalDate endDate;
+
     private Long current = 1L;
+
     private Long size = 10L;
 }

@@ -4,11 +4,14 @@ import com.museum.museumsystem.common.Result;
 import com.museum.museumsystem.common.PageResult;
 import com.museum.museumsystem.dto.request.RestorationQueryDTO;
 import com.museum.museumsystem.entity.Restoration;
+import com.museum.museumsystem.entity.RestorationFlow;
 import com.museum.museumsystem.service.RestorationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/restoration")
@@ -29,6 +32,8 @@ public class RestorationController {
 
     @PostMapping
     public Result<Void> add(@RequestBody @Valid Restoration restoration) {
+        restoration.setStatus("PENDING");
+        restoration.setCurrentStage("APPLY");
         restorationService.save(restoration);
         return Result.success();
     }
@@ -43,5 +48,22 @@ public class RestorationController {
     public Result<Void> delete(@PathVariable Long id) {
         restorationService.removeById(id);
         return Result.success();
+    }
+
+    @PostMapping("/approve")
+    public Result<Void> approve(@RequestBody Map<String, String> params) {
+        Long restorationId = Long.parseLong(params.get("restorationId"));
+        String stage = params.get("stage");
+        String approverName = params.get("approverName");
+        String approverRole = params.get("approverRole");
+        String opinion = params.get("opinion");
+        String status = params.get("status");
+        restorationService.approve(restorationId, stage, approverName, approverRole, opinion, status);
+        return Result.success();
+    }
+
+    @GetMapping("/{id}/flow")
+    public Result<List<RestorationFlow>> getFlowHistory(@PathVariable Long id) {
+        return Result.success(restorationService.getFlowHistory(id));
     }
 }

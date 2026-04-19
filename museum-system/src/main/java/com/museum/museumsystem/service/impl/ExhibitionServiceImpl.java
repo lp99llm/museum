@@ -4,9 +4,12 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.museum.museumsystem.common.PageResult;
+import com.museum.museumsystem.dto.request.ExhibitionArtifactDTO;
 import com.museum.museumsystem.dto.request.ExhibitionQueryDTO;
+import com.museum.museumsystem.entity.Artifact;
 import com.museum.museumsystem.entity.Exhibition;
 import com.museum.museumsystem.entity.ExhibitionArtifact;
+import com.museum.museumsystem.mapper.ArtifactMapper;
 import com.museum.museumsystem.mapper.ExhibitionMapper;
 import com.museum.museumsystem.service.ExhibitionArtifactService;
 import com.museum.museumsystem.service.ExhibitionService;
@@ -15,7 +18,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,6 +28,7 @@ import java.util.stream.Collectors;
 public class ExhibitionServiceImpl extends ServiceImpl<ExhibitionMapper, Exhibition> implements ExhibitionService {
 
     private final ExhibitionArtifactService exhibitionArtifactService;
+    private final ArtifactMapper artifactMapper;
 
     @Override
     public PageResult<Exhibition> pageQuery(ExhibitionQueryDTO queryDTO) {
@@ -45,7 +51,6 @@ public class ExhibitionServiceImpl extends ServiceImpl<ExhibitionMapper, Exhibit
     @Override
     @Transactional
     public boolean addArtifactToExhibition(Long exhibitionId, Long artifactId, Integer displayOrder, String remark) {
-        // 检查展览是否存在（业务异常可在Controller层处理）
         ExhibitionArtifact relation = new ExhibitionArtifact();
         relation.setExhibitionId(exhibitionId);
         relation.setArtifactId(artifactId);
@@ -70,5 +75,42 @@ public class ExhibitionServiceImpl extends ServiceImpl<ExhibitionMapper, Exhibit
         return exhibitionArtifactService.list(wrapper).stream()
                 .map(ExhibitionArtifact::getArtifactId)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ExhibitionArtifactDTO> getArtifactDetailsByExhibitionId(Long exhibitionId) {
+        LambdaQueryWrapper<ExhibitionArtifact> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(ExhibitionArtifact::getExhibitionId, exhibitionId)
+                .orderByAsc(ExhibitionArtifact::getDisplayOrder);
+        List<ExhibitionArtifact> relations = exhibitionArtifactService.list(wrapper);
+
+        if (relations.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<Long> artifactIds = relations.stream()
+                .map(ExhibitionArtifact::getArtifactId)
+                .collect(Collectors.toList());
+
+        List<Artifact> artifacts = artifactMapper.selectBatchIds(artifactIds);
+        Map<Long, Artifact> artifactMap = artifacts.stream()
+                .collect(Collectors.toMap(Artifact::getId, a -> a));
+
+        return relations.stream().map(rel -> {
+            ExhibitionArtifactDTO dto = new ExhibitionArtifactDTO();
+            dto.setArtifactId(rel.getArtifactId());
+            dto.setDisplayOrder(rel.getDisplayOrder());
+            dto.setRemark(rel.getRemark());
+
+            Artifact artifact = artifactMap.get(rel.getArtifactId());
+            if (artifact != null) {
+                dto.setCode(artifact.getCode());
+                dto.setName(artifact.getName());
+                dto.setCategory(artifact.getCategory());
+                dto.setEra(artifact.getEra());
+                dto.setMaterial(artifact.getMaterial());
+            }
+            return dto;
+        }).collect(Collectors.toList());
     }
 }

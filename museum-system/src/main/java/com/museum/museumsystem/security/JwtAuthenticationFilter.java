@@ -6,6 +6,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -15,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+@Service
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Autowired
@@ -24,9 +26,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private UserService userService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        // 检查是否已经处理过该请求，防止递归调用
+        if (request.getAttribute("JWT_FILTER_PROCESSED") != null) {
+            logger.warn("JWT filter already processed this request, skipping");
+            filterChain.doFilter(request, response);
+            return;
+        }
+        
+        // 标记请求已处理
+        request.setAttribute("JWT_FILTER_PROCESSED", true);
+        
         try {
             // 1. 从请求头获取 JWT token
             String jwt = getJwtFromRequest(request);
@@ -40,8 +50,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 UserDetails userDetails = userService.loadUserByUsername(username);
 
                 // 5. 创建认证对象
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 // 6. 设置到 Security 上下文
@@ -50,7 +59,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } catch (Exception ex) {
             logger.error("无法设置用户认证", ex);
         }
-
+        System.out.println("JwtAuthenticationFilter 准备调用 filterChain，当前认证：" + SecurityContextHolder.getContext().getAuthentication());
         filterChain.doFilter(request, response);
     }
 

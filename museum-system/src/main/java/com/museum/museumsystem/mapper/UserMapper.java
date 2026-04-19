@@ -7,6 +7,6 @@ import org.apache.ibatis.annotations.Select;
 
 @Mapper
 public interface UserMapper extends BaseMapper<User> {
-    @Select("SELECT * FROM user WHERE username = #{username} AND deleted = 0")
+    @Select("SELECT * FROM user WHERE username = #{username}")
     User selectByUsername(String username);
 }

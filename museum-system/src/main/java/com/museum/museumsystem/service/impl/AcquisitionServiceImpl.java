@@ -17,9 +17,16 @@ public class AcquisitionServiceImpl extends ServiceImpl<AcquisitionMapper, Acqui
     public PageResult<Acquisition> pageQuery(AcquisitionQueryDTO queryDTO) {
         Page<Acquisition> page = new Page<>(queryDTO.getCurrent(), queryDTO.getSize());
         LambdaQueryWrapper<Acquisition> wrapper = new LambdaQueryWrapper<>();
+
         wrapper.eq(queryDTO.getArtifactId() != null, Acquisition::getArtifactId, queryDTO.getArtifactId())
+                .like(queryDTO.getArtifactCode() != null, Acquisition::getArtifactCode, queryDTO.getArtifactCode())
+                .like(queryDTO.getArtifactName() != null, Acquisition::getArtifactName, queryDTO.getArtifactName())
                 .eq(queryDTO.getAcquisitionType() != null, Acquisition::getAcquisitionType, queryDTO.getAcquisitionType())
+                .ge(queryDTO.getStartDate() != null, Acquisition::getAcquisitionDate, queryDTO.getStartDate())
+                .le(queryDTO.getEndDate() != null, Acquisition::getAcquisitionDate, queryDTO.getEndDate())
+                .like(queryDTO.getSourceInstitution() != null, Acquisition::getSourceInstitution, queryDTO.getSourceInstitution())
                 .orderByDesc(Acquisition::getCreatedTime);
+
         Page<Acquisition> pageResult = this.page(page, wrapper);
         PageResult<Acquisition> result = new PageResult<>();
         result.setCurrent(pageResult.getCurrent());

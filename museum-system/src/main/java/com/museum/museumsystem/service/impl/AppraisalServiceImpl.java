@@ -17,9 +17,16 @@ public class AppraisalServiceImpl extends ServiceImpl<AppraisalMapper, Appraisal
     public PageResult<Appraisal> pageQuery(AppraisalQueryDTO queryDTO) {
         Page<Appraisal> page = new Page<>(queryDTO.getCurrent(), queryDTO.getSize());
         LambdaQueryWrapper<Appraisal> wrapper = new LambdaQueryWrapper<>();
+
         wrapper.eq(queryDTO.getArtifactId() != null, Appraisal::getArtifactId, queryDTO.getArtifactId())
+                .like(queryDTO.getArtifactCode() != null, Appraisal::getArtifactCode, queryDTO.getArtifactCode())
+                .like(queryDTO.getArtifactName() != null, Appraisal::getArtifactName, queryDTO.getArtifactName())
                 .eq(queryDTO.getAppraisalLevel() != null, Appraisal::getAppraisalLevel, queryDTO.getAppraisalLevel())
+                .like(queryDTO.getExpertName() != null, Appraisal::getExpertName, queryDTO.getExpertName())
+                .ge(queryDTO.getStartDate() != null, Appraisal::getAppraisalDate, queryDTO.getStartDate())
+                .le(queryDTO.getEndDate() != null, Appraisal::getAppraisalDate, queryDTO.getEndDate())
                 .orderByDesc(Appraisal::getCreatedTime);
+
         Page<Appraisal> pageResult = this.page(page, wrapper);
         PageResult<Appraisal> result = new PageResult<>();
         result.setCurrent(pageResult.getCurrent());

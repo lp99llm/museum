@@ -61,7 +61,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         userDetails.setUserId(user.getId());
         userDetails.setUsername(user.getUsername());
         userDetails.setPassword(user.getPassword());
-        userDetails.setEnabled(user.getEnabled());
+        userDetails.setEnabled(user.isEnabled());
         userDetails.setPermissions(permissions);
 
         return userDetails;

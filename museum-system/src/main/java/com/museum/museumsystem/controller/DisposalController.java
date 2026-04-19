@@ -4,11 +4,14 @@ import com.museum.museumsystem.common.Result;
 import com.museum.museumsystem.common.PageResult;
 import com.museum.museumsystem.dto.request.DisposalQueryDTO;
 import com.museum.museumsystem.entity.Disposal;
+import com.museum.museumsystem.entity.DisposalFlow;
 import com.museum.museumsystem.service.DisposalService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/disposal")
@@ -29,7 +32,9 @@ public class DisposalController {
 
     @PostMapping
     public Result<Void> add(@RequestBody @Valid Disposal disposal) {
-        disposal.setOperator(1L); // 当前用户ID
+        disposal.setCreatedBy(1L);
+        disposal.setStatus("PENDING");
+        disposal.setCurrentStage("APPLY");
         disposalService.save(disposal);
         return Result.success();
     }
@@ -44,5 +49,22 @@ public class DisposalController {
     public Result<Void> delete(@PathVariable Long id) {
         disposalService.removeById(id);
         return Result.success();
+    }
+
+    @PostMapping("/approve")
+    public Result<Void> approve(@RequestBody Map<String, String> params) {
+        Long disposalId = Long.parseLong(params.get("disposalId"));
+        String stage = params.get("stage");
+        String approverName = params.get("approverName");
+        String approverRole = params.get("approverRole");
+        String opinion = params.get("opinion");
+        String status = params.get("status");
+        disposalService.approve(disposalId, stage, approverName, approverRole, opinion, status);
+        return Result.success();
+    }
+
+    @GetMapping("/{id}/flow")
+    public Result<List<DisposalFlow>> getFlowHistory(@PathVariable Long id) {
+        return Result.success(disposalService.getFlowHistory(id));
     }
 }

@@ -1,11 +1,12 @@
 package com.museum.museumsystem.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.museum.museumsystem.dto.request.LoginRequest;
 import com.museum.museumsystem.dto.request.UserRegisterRequest;
 import com.museum.museumsystem.dto.request.ResetPasswordRequest;
 import com.museum.museumsystem.dto.response.LoginResponse;
 import com.museum.museumsystem.entity.User;
-import com.museum.museumsystem.repository.UserRepository;
+import com.museum.museumsystem.mapper.UserMapper;
 import com.museum.museumsystem.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -22,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class AuthService {
     @Autowired
-    private UserRepository userRepository;
+    private UserMapper userMapper;
     @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
@@ -40,16 +41,25 @@ public class AuthService {
         );
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String token = tokenProvider.generateToken(authentication);
-        User user = userRepository.findByUsername(request.getUsername()).orElseThrow();
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(User::getUsername, request.getUsername());
+        User user = userMapper.selectOne(wrapper);
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
+        }
         return new LoginResponse(token, user.getUsername(), user.getRole());
     }
 
     @Transactional
     public void register(UserRegisterRequest request) {
-        if (userRepository.existsByUsername(request.getUsername())) {
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(User::getUsername, request.getUsername());
+        if (userMapper.selectCount(wrapper) > 0) {
             throw new RuntimeException("用户名已存在");
         }
-        if (userRepository.existsByEmail(request.getEmail())) {
+        wrapper.clear();
+        wrapper.eq(User::getEmail, request.getEmail());
+        if (userMapper.selectCount(wrapper) > 0) {
             throw new RuntimeException("邮箱已被注册");
         }
         User user = new User();
@@ -57,12 +67,16 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setEmail(request.getEmail());
         user.setRole("USER");
-        userRepository.save(user);
+        userMapper.insert(user);
     }
 
     public void sendResetCode(String username, String email) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("用户不存在"));
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(User::getUsername, username);
+        User user = userMapper.selectOne(wrapper);
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
+        }
         if (!user.getEmail().equals(email)) {
             throw new RuntimeException("用户名与邮箱不匹配");
         }
@@ -86,13 +100,16 @@ public class AuthService {
 
     @Transactional
     public void resetPassword(ResetPasswordRequest request) {
-        // 如果前端已经通过 verifyResetCode 校验，则此处不再重复校验验证码，直接重置
-        User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("用户不存在"));
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(User::getUsername, request.getUsername());
+        User user = userMapper.selectOne(wrapper);
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
+        }
         if (!user.getEmail().equals(request.getEmail())) {
             throw new RuntimeException("邮箱不匹配");
         }
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-        userRepository.save(user);
+        userMapper.updateById(user);
     }
 }

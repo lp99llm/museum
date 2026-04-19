@@ -2,6 +2,7 @@ package com.museum.museumsystem.controller;
 
 import com.museum.museumsystem.common.Result;
 import com.museum.museumsystem.common.PageResult;
+import com.museum.museumsystem.dto.request.ExhibitionArtifactDTO;
 import com.museum.museumsystem.dto.request.ExhibitionQueryDTO;
 import com.museum.museumsystem.entity.Exhibition;
 import com.museum.museumsystem.service.ExhibitionService;
@@ -30,7 +31,7 @@ public class ExhibitionController {
 
     @PostMapping
     public Result<Void> add(@RequestBody @Valid Exhibition exhibition) {
-        exhibition.setCreatedBy(1L); // 从SecurityContext获取当前用户ID
+        exhibition.setCreatedBy(1L);
         exhibitionService.save(exhibition);
         return Result.success();
     }
@@ -47,7 +48,6 @@ public class ExhibitionController {
         return Result.success();
     }
 
-    // 为展览添加文物
     @PostMapping("/{exhibitionId}/artifact/{artifactId}")
     public Result<Void> addArtifact(
             @PathVariable Long exhibitionId,
@@ -58,7 +58,6 @@ public class ExhibitionController {
         return Result.success();
     }
 
-    // 从展览移除文物
     @DeleteMapping("/{exhibitionId}/artifact/{artifactId}")
     public Result<Void> removeArtifact(
             @PathVariable Long exhibitionId,
@@ -67,9 +66,13 @@ public class ExhibitionController {
         return Result.success();
     }
 
-    // 查询展览下的所有文物ID
     @GetMapping("/{exhibitionId}/artifacts")
     public Result<List<Long>> getArtifactIds(@PathVariable Long exhibitionId) {
         return Result.success(exhibitionService.getArtifactIdsByExhibitionId(exhibitionId));
+    }
+
+    @GetMapping("/{exhibitionId}/artifact-details")
+    public Result<List<ExhibitionArtifactDTO>> getArtifactDetails(@PathVariable Long exhibitionId) {
+        return Result.success(exhibitionService.getArtifactDetailsByExhibitionId(exhibitionId));
     }
 }
