@@ -47,19 +47,19 @@
         <el-table-column prop="storagePosition" label="存放位置" width="100" />
         <el-table-column prop="storageStatus" label="入库状态" width="100">
           <template #default="{ row }">
-            <el-tag :type="getStatusTagType(row.storageStatus)">
-              {{ getStatusLabel(row.storageStatus) }}
+            <el-tag :type="getWarehousingStatusType(row.storageStatus)">
+              {{ getWarehousingStatusLabel(row.storageStatus) }}
             </el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="temperature" label="温度" width="80">
           <template #default="{ row }">
-            {{ row.temperature ? row.temperature + '°C' : '-' }}
+            {{ row.temperature ? `${row.temperature}°C` : '-' }}
           </template>
         </el-table-column>
         <el-table-column prop="humidity" label="湿度" width="80">
           <template #default="{ row }">
-            {{ row.humidity ? row.humidity + '%' : '-' }}
+            {{ row.humidity ? `${row.humidity}%` : '-' }}
           </template>
         </el-table-column>
         <el-table-column prop="handler" label="操作人" width="100" />
@@ -87,10 +87,16 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { warehousingApi } from '@/api/warehousing'
+import {
+  WAREHOUSING_STATUS_LABELS,
+  WAREHOUSING_STATUS_TYPES,
+  getStatusLabel,
+  getStatusType
+} from '@/utils/status'
 
 const router = useRouter()
 const loading = ref(false)
@@ -109,6 +115,9 @@ const queryParams = reactive({
   size: 10
 })
 
+const getWarehousingStatusLabel = (status) => getStatusLabel(WAREHOUSING_STATUS_LABELS, status)
+const getWarehousingStatusType = (status) => getStatusType(WAREHOUSING_STATUS_TYPES, status)
+
 const getList = async () => {
   loading.value = true
   try {
@@ -120,11 +129,9 @@ const getList = async () => {
       queryParams.endDate = ''
     }
     const res = await warehousingApi.getPage(queryParams)
-    if (res.code === 200) {
-      tableData.value = res.data.records || []
-      total.value = res.data.total || 0
-    }
-  } catch (error) {
+    tableData.value = res.records || []
+    total.value = res.total || 0
+  } catch {
     ElMessage.error('加载数据失败')
   } finally {
     loading.value = false
@@ -172,16 +179,6 @@ const handleDelete = async (row) => {
       ElMessage.error('删除失败')
     }
   }
-}
-
-const getStatusLabel = (status) => {
-  const map = { PENDING: '待确认', CONFIRMED: '已确认', REJECTED: '已拒绝' }
-  return map[status] || status
-}
-
-const getStatusTagType = (status) => {
-  const map = { PENDING: 'warning', CONFIRMED: 'success', REJECTED: 'danger' }
-  return map[status] || ''
 }
 
 onMounted(() => {

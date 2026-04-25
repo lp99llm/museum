@@ -64,12 +64,12 @@
         </el-table-column>
         <el-table-column prop="temperature" label="温度" width="80">
           <template #default="{ row }">
-            {{ row.temperature ? row.temperature + '°C' : '-' }}
+            {{ row.temperature ? `${row.temperature}°C` : '-' }}
           </template>
         </el-table-column>
         <el-table-column prop="humidity" label="湿度" width="80">
           <template #default="{ row }">
-            {{ row.humidity ? row.humidity + '%' : '-' }}
+            {{ row.humidity ? `${row.humidity}%` : '-' }}
           </template>
         </el-table-column>
         <el-table-column prop="nextCheckDate" label="下次检查" width="120" />
@@ -98,10 +98,18 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { storageCheckApi } from '@/api/storageCheck'
+import {
+  STORAGE_CHECK_RESULT_LABELS,
+  STORAGE_CHECK_RESULT_TYPES,
+  STORAGE_CHECK_TYPE_LABELS,
+  STORAGE_CHECK_TYPE_TYPES,
+  getStatusLabel,
+  getStatusType
+} from '@/utils/status'
 
 const router = useRouter()
 const loading = ref(false)
@@ -120,6 +128,11 @@ const queryParams = reactive({
   size: 10
 })
 
+const getCheckTypeLabel = (type) => getStatusLabel(STORAGE_CHECK_TYPE_LABELS, type)
+const getCheckTypeTagType = (type) => getStatusType(STORAGE_CHECK_TYPE_TYPES, type)
+const getResultLabel = (result) => getStatusLabel(STORAGE_CHECK_RESULT_LABELS, result)
+const getResultTagType = (result) => getStatusType(STORAGE_CHECK_RESULT_TYPES, result)
+
 const getList = async () => {
   loading.value = true
   try {
@@ -131,11 +144,9 @@ const getList = async () => {
       queryParams.endDate = ''
     }
     const res = await storageCheckApi.getPage(queryParams)
-    if (res.code === 200) {
-      tableData.value = res.data.records || []
-      total.value = res.data.total || 0
-    }
-  } catch (error) {
+    tableData.value = res.records || []
+    total.value = res.total || 0
+  } catch {
     ElMessage.error('加载数据失败')
   } finally {
     loading.value = false
@@ -183,26 +194,6 @@ const handleDelete = async (row) => {
       ElMessage.error('删除失败')
     }
   }
-}
-
-const getCheckTypeLabel = (type) => {
-  const map = { DAILY: '日常', MONTHLY: '月度', QUARTERLY: '季度', HALF_YEAR: '半年度', YEARLY: '年度' }
-  return map[type] || type
-}
-
-const getCheckTypeTagType = (type) => {
-  const map = { DAILY: 'info', MONTHLY: '', QUARTERLY: 'success', HALF_YEAR: 'warning', YEARLY: 'danger' }
-  return map[type] || ''
-}
-
-const getResultLabel = (result) => {
-  const map = { NORMAL: '正常', ABNORMAL: '异常', NEED_REPAIR: '需修复' }
-  return map[result] || result
-}
-
-const getResultTagType = (result) => {
-  const map = { NORMAL: 'success', ABNORMAL: 'danger', NEED_REPAIR: 'warning' }
-  return map[result] || ''
 }
 
 onMounted(() => {

@@ -1,0 +1,225 @@
+.process-form-page {
+  display: grid;
+  gap: 24px;
+}
+
+.eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--museum-color-primary);
+  font-weight: 600;
+}
+
+.process-form-shell {
+  display: grid;
+  gap: 24px;
+}
+
+.process-form-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.9fr);
+  gap: 24px;
+  padding: 28px;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top right, rgba(212, 160, 23, 0.2), transparent 26%),
+    linear-gradient(135deg, rgba(46, 90, 90, 0.12), rgba(46, 90, 90, 0.04));
+  border: 1px solid rgba(46, 90, 90, 0.08);
+}
+
+.process-form-header h1 {
+  margin: 12px 0 10px;
+  font-size: 28px;
+  color: var(--museum-text-strong);
+}
+
+.process-form-header p {
+  margin: 0;
+  line-height: 1.8;
+  color: var(--museum-text-secondary);
+}
+
+.process-form-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.process-form-kpi {
+  padding: 18px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.process-form-kpi span {
+  display: block;
+  font-size: 12px;
+  color: var(--museum-text-secondary);
+}
+
+.process-form-kpi strong {
+  display: block;
+  margin-top: 10px;
+  font-size: 24px;
+  color: var(--museum-text-strong);
+}
+
+.process-form-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(300px, 0.85fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.process-form-main,
+.process-form-side {
+  display: grid;
+  gap: 20px;
+}
+
+.process-form-card {
+  border: 1px solid var(--museum-border-light);
+  border-radius: 22px;
+}
+
+.process-form-card .el-card__header {
+  padding: 20px 22px 0;
+  border-bottom: 0;
+}
+
+.process-form-card .el-card__body {
+  padding: 20px 22px 22px;
+}
+
+.process-form-section-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.process-form-section-title h3 {
+  margin: 0;
+  font-size: 17px;
+  color: var(--museum-text-strong);
+}
+
+.process-form-section-title p {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--museum-text-tertiary);
+}
+
+.process-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 16px;
+}
+
+.process-form-grid.single {
+  grid-template-columns: 1fr;
+}
+
+.process-form-span-2 {
+  grid-column: span 2;
+}
+
+.process-form-side-list {
+  display: grid;
+  gap: 12px;
+}
+
+.process-form-side-item {
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--museum-bg-subtle);
+  border: 1px solid var(--museum-border-light);
+}
+
+.process-form-side-item h4 {
+  margin: 0;
+  font-size: 14px;
+  color: var(--museum-text-strong);
+}
+
+.process-form-side-item p {
+  margin: 8px 0 0;
+  line-height: 1.7;
+  font-size: 12px;
+  color: var(--museum-text-secondary);
+}
+
+.process-upload-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.process-upload-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--museum-bg-subtle);
+  border: 1px solid var(--museum-border-light);
+}
+
+.process-upload-item span {
+  color: var(--museum-text-regular);
+  font-size: 13px;
+}
+
+.process-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.process-inline-note {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--museum-text-tertiary);
+}
+
+.process-form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-start;
+}
+
+.process-form-page .el-select,
+.process-form-page .el-date-editor.el-input,
+.process-form-page .el-date-editor.el-input__wrapper,
+.process-form-page .el-input-number {
+  width: 100%;
+}
+
+.process-empty-note {
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--museum-bg-subtle);
+  color: var(--museum-text-secondary);
+  font-size: 13px;
+}
+
+@media (max-width: 1200px) {
+  .process-form-layout,
+  .process-form-header {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .process-form-grid,
+  .process-form-kpis {
+    grid-template-columns: 1fr;
+  }
+
+  .process-form-span-2 {
+    grid-column: span 1;
+  }
+}

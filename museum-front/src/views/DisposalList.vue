@@ -1,15 +1,15 @@
 <template>
-  <div>
-    <el-card>
+  <div class="process-list-page">
+    <el-card class="toolbar-card">
       <el-form :inline="true" :model="queryParams" @submit.prevent>
         <el-form-item label="文物编号">
-          <el-input v-model="queryParams.artifactCode" placeholder="文物编号" clearable />
+          <el-input v-model="queryParams.artifactCode" placeholder="请输入文物编号" clearable />
         </el-form-item>
         <el-form-item label="文物名称">
-          <el-input v-model="queryParams.artifactName" placeholder="文物名称" clearable />
+          <el-input v-model="queryParams.artifactName" placeholder="请输入文物名称" clearable />
         </el-form-item>
         <el-form-item label="申请人">
-          <el-input v-model="queryParams.applicant" placeholder="申请人" clearable />
+          <el-input v-model="queryParams.applicant" placeholder="请输入申请人" clearable />
         </el-form-item>
         <el-form-item label="处置类型">
           <el-select v-model="queryParams.disposalType" placeholder="请选择" clearable>
@@ -27,14 +27,14 @@
             <el-option label="备案" value="RECORD" />
             <el-option label="执行" value="EXECUTION" />
             <el-option label="归档" value="ARCHIVE" />
-            <el-option label="完成" value="COMPLETED" />
+            <el-option label="已完成" value="COMPLETED" />
           </el-select>
         </el-form-item>
         <el-form-item label="状态">
           <el-select v-model="queryParams.status" placeholder="请选择" clearable>
             <el-option label="待审批" value="PENDING" />
             <el-option label="已批准" value="APPROVED" />
-            <el-option label="已拒绝" value="REJECTED" />
+            <el-option label="已驳回" value="REJECTED" />
           </el-select>
         </el-form-item>
         <el-form-item label="申请日期">
@@ -50,12 +50,12 @@
         <el-form-item>
           <el-button type="primary" @click="handleQuery">查询</el-button>
           <el-button @click="resetQuery">重置</el-button>
-          <el-button type="primary" @click="handleAdd">新增处置</el-button>
+          <el-button v-permission="PERMISSIONS.DISPOSAL_ADD" type="primary" @click="handleAdd">新增处置</el-button>
         </el-form-item>
       </el-form>
     </el-card>
 
-    <el-card style="margin-top: 16px">
+    <el-card class="table-card">
       <el-table :data="tableData" v-loading="loading" border>
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="artifactCode" label="文物编号" />
@@ -69,24 +69,24 @@
         <el-table-column prop="applyDate" label="申请日期" width="120" />
         <el-table-column prop="currentStage" label="当前阶段" width="120">
           <template #default="{ row }">
-            <el-tag :type="getStageTagType(row.currentStage)">
-              {{ getStageLabel(row.currentStage) }}
+            <el-tag :type="getDisposalStageType(row.currentStage)">
+              {{ getDisposalStageLabel(row.currentStage) }}
             </el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="status" label="状态" width="100">
           <template #default="{ row }">
-            <el-tag :type="getStatusTagType(row.status)">
-              {{ getStatusLabel(row.status) }}
+            <el-tag :type="getDisposalStatusType(row.status)">
+              {{ getDisposalStatusLabel(row.status) }}
             </el-tag>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="280">
           <template #default="{ row }">
             <el-button link type="primary" @click="handleView(row)">查看</el-button>
-            <el-button link type="primary" @click="handleEdit(row)" v-if="row.status === 'PENDING'">编辑</el-button>
-            <el-button link type="success" @click="handleApprove(row)" v-if="row.status === 'PENDING'">审批</el-button>
-            <el-button link type="danger" @click="handleDelete(row)" v-if="row.status === 'PENDING'">删除</el-button>
+            <el-button v-if="row.status === 'PENDING'" v-permission="PERMISSIONS.DISPOSAL_EDIT" link type="primary" @click="handleEdit(row)">编辑</el-button>
+            <el-button v-if="row.status === 'PENDING'" v-permission="PERMISSIONS.DISPOSAL_APPROVE" link type="success" @click="handleApprove(row)">审批</el-button>
+            <el-button v-if="row.status === 'PENDING'" v-permission="PERMISSIONS.DISPOSAL_DELETE" link type="danger" @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -97,7 +97,7 @@
         :total="total"
         :page-sizes="[10, 20, 50, 100]"
         layout="total, sizes, prev, pager, next, jumper"
-        style="margin-top: 16px"
+        class="pagination"
         @size-change="getList"
         @current-change="getList"
       />
@@ -110,41 +110,41 @@
         <el-descriptions-item label="申请人">{{ currentRow?.applicant }}</el-descriptions-item>
         <el-descriptions-item label="申请日期">{{ currentRow?.applyDate }}</el-descriptions-item>
         <el-descriptions-item label="处置类型">{{ getDisposalTypeLabel(currentRow?.disposalType) }}</el-descriptions-item>
-        <el-descriptions-item label="申请原因">{{ currentRow?.applyReason }}</el-descriptions-item>
+        <el-descriptions-item label="申请原因">{{ currentRow?.applyReason || '暂无' }}</el-descriptions-item>
         <el-descriptions-item label="当前阶段">
-          <el-tag :type="getStageTagType(currentRow?.currentStage)">
-            {{ getStageLabel(currentRow?.currentStage) }}
+          <el-tag :type="getDisposalStageType(currentRow?.currentStage)">
+            {{ getDisposalStageLabel(currentRow?.currentStage) }}
           </el-tag>
         </el-descriptions-item>
         <el-descriptions-item label="状态">
-          <el-tag :type="getStatusTagType(currentRow?.status)">
-            {{ getStatusLabel(currentRow?.status) }}
+          <el-tag :type="getDisposalStatusType(currentRow?.status)">
+            {{ getDisposalStatusLabel(currentRow?.status) }}
           </el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="评估报告" :span="2">{{ currentRow?.evaluationReport }}</el-descriptions-item>
-        <el-descriptions-item label="专家意见" :span="2">{{ currentRow?.expertOpinion }}</el-descriptions-item>
-        <el-descriptions-item label="公示开始" :span="2">{{ currentRow?.publicStartTime }}</el-descriptions-item>
-        <el-descriptions-item label="公示结束" :span="2">{{ currentRow?.publicEndTime }}</el-descriptions-item>
-        <el-descriptions-item label="公示结果" :span="2">{{ currentRow?.publicResult }}</el-descriptions-item>
-        <el-descriptions-item label="审批意见" :span="2">{{ currentRow?.approvalOpinion }}</el-descriptions-item>
-        <el-descriptions-item label="审批人">{{ currentRow?.approver }}</el-descriptions-item>
-        <el-descriptions-item label="审批日期">{{ currentRow?.approvalDate }}</el-descriptions-item>
-        <el-descriptions-item label="备案状态">{{ currentRow?.recordStatus }}</el-descriptions-item>
-        <el-descriptions-item label="备案日期">{{ currentRow?.recordDate }}</el-descriptions-item>
-        <el-descriptions-item label="备案机构" :span="2">{{ currentRow?.recordOrganization }}</el-descriptions-item>
-        <el-descriptions-item label="处置日期">{{ currentRow?.disposalDate }}</el-descriptions-item>
-        <el-descriptions-item label="执行人">{{ currentRow?.operator }}</el-descriptions-item>
-        <el-descriptions-item label="执行结果" :span="2">{{ currentRow?.executionResult }}</el-descriptions-item>
-        <el-descriptions-item label="档案编号">{{ currentRow?.archiveNo }}</el-descriptions-item>
-        <el-descriptions-item label="归档日期">{{ currentRow?.archiveDate }}</el-descriptions-item>
-        <el-descriptions-item label="备注" :span="2">{{ currentRow?.remarks }}</el-descriptions-item>
+        <el-descriptions-item label="评估报告" :span="2">{{ currentRow?.evaluationReport || '暂无' }}</el-descriptions-item>
+        <el-descriptions-item label="专家意见" :span="2">{{ currentRow?.expertOpinion || '暂无' }}</el-descriptions-item>
+        <el-descriptions-item label="公示开始" :span="2">{{ currentRow?.publicStartTime || '暂无' }}</el-descriptions-item>
+        <el-descriptions-item label="公示结束" :span="2">{{ currentRow?.publicEndTime || '暂无' }}</el-descriptions-item>
+        <el-descriptions-item label="公示结果" :span="2">{{ currentRow?.publicResult || '暂无' }}</el-descriptions-item>
+        <el-descriptions-item label="审批意见" :span="2">{{ currentRow?.approvalOpinion || '暂无' }}</el-descriptions-item>
+        <el-descriptions-item label="审批人">{{ currentRow?.approver || '暂无' }}</el-descriptions-item>
+        <el-descriptions-item label="审批日期">{{ currentRow?.approvalDate || '暂无' }}</el-descriptions-item>
+        <el-descriptions-item label="备案状态">{{ currentRow?.recordStatus || '暂无' }}</el-descriptions-item>
+        <el-descriptions-item label="备案日期">{{ currentRow?.recordDate || '暂无' }}</el-descriptions-item>
+        <el-descriptions-item label="备案机构" :span="2">{{ currentRow?.recordOrganization || '暂无' }}</el-descriptions-item>
+        <el-descriptions-item label="处置日期">{{ currentRow?.disposalDate || '暂无' }}</el-descriptions-item>
+        <el-descriptions-item label="执行人">{{ currentRow?.operator || '暂无' }}</el-descriptions-item>
+        <el-descriptions-item label="执行结果" :span="2">{{ currentRow?.executionResult || '暂无' }}</el-descriptions-item>
+        <el-descriptions-item label="档案编号">{{ currentRow?.archiveNo || '暂无' }}</el-descriptions-item>
+        <el-descriptions-item label="归档日期">{{ currentRow?.archiveDate || '暂无' }}</el-descriptions-item>
+        <el-descriptions-item label="备注" :span="2">{{ currentRow?.remarks || '暂无' }}</el-descriptions-item>
       </el-descriptions>
 
       <el-divider>审批历史</el-divider>
       <el-timeline v-if="flowHistory.length > 0">
         <el-timeline-item v-for="item in flowHistory" :key="item.id" :timestamp="item.approveTime" placement="top">
-          <p><strong>{{ item.stageName }}</strong> - {{ item.approverName }} ({{ item.approverRole }})</p>
-          <p>意见: {{ item.approvalOpinion }}</p>
+          <p><strong>{{ item.stageName }}</strong> - {{ item.approverName }}（{{ item.approverRole }}）</p>
+          <p>意见：{{ item.approvalOpinion }}</p>
           <el-tag :type="item.status === 'APPROVED' ? 'success' : 'danger'" size="small">
             {{ item.status === 'APPROVED' ? '通过' : '拒绝' }}
           </el-tag>
@@ -180,8 +180,8 @@
         </el-form-item>
         <el-form-item label="审批结果">
           <el-radio-group v-model="approveForm.status">
-            <el-radio label="APPROVED">通过</el-radio>
-            <el-radio label="REJECTED">拒绝</el-radio>
+            <el-radio value="APPROVED">通过</el-radio>
+            <el-radio value="REJECTED">拒绝</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>
@@ -194,21 +194,24 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { disposalApi } from '@/api/disposal'
+import { useFlowDialogs } from '@/composables/useFlowDialogs'
+import { usePageQuery } from '@/composables/usePageQuery'
+import { PERMISSIONS } from '@/constants/permissions'
+import {
+  DISPOSAL_STAGE_LABELS,
+  DISPOSAL_STAGE_TYPES,
+  DISPOSAL_STATUS_LABELS,
+  DISPOSAL_STATUS_TYPES,
+  DISPOSAL_TYPE_LABELS,
+  getStatusLabel,
+  getStatusType
+} from '@/utils/status'
 
 const router = useRouter()
-const loading = ref(false)
-const tableData = ref([])
-const total = ref(0)
-const dateRange = ref([])
-const detailVisible = ref(false)
-const approveVisible = ref(false)
-const currentRow = ref(null)
-const flowHistory = ref([])
-
 const queryParams = reactive({
   artifactCode: '',
   artifactName: '',
@@ -231,49 +234,53 @@ const approveForm = reactive({
   status: 'APPROVED'
 })
 
-const getList = async () => {
-  loading.value = true
-  try {
-    if (dateRange.value && dateRange.value.length === 2) {
-      queryParams.startDate = dateRange.value[0]
-      queryParams.endDate = dateRange.value[1]
-    } else {
-      queryParams.startDate = ''
-      queryParams.endDate = ''
-    }
-    const res = await disposalApi.getPage(queryParams)
-    if (res.code === 200) {
-      tableData.value = res.data.records || []
-      total.value = res.data.total || 0
-    }
-  } catch (error) {
-    ElMessage.error('加载数据失败')
-  } finally {
-    loading.value = false
+const {
+  currentRow,
+  flowHistory,
+  detailVisible,
+  approveVisible,
+  openDetail,
+  openApprove,
+  closeApprove
+} = useFlowDialogs({
+  loadHistory: (row) => disposalApi.getFlowHistory(row.id),
+  initApprove: (row) => {
+    approveForm.disposalId = row.id
+    approveForm.stage = row.currentStage || 'APPLY'
+    approveForm.approverName = ''
+    approveForm.approverRole = ''
+    approveForm.opinion = ''
+    approveForm.status = 'APPROVED'
   }
-}
+})
 
-const handleQuery = () => {
-  queryParams.current = 1
-  getList()
-}
+const getDisposalTypeLabel = (value) => getStatusLabel(DISPOSAL_TYPE_LABELS, value)
+const getDisposalStageLabel = (value) => getStatusLabel(DISPOSAL_STAGE_LABELS, value)
+const getDisposalStageType = (value) => getStatusType(DISPOSAL_STAGE_TYPES, value)
+const getDisposalStatusLabel = (value) => getStatusLabel(DISPOSAL_STATUS_LABELS, value)
+const getDisposalStatusType = (value) => getStatusType(DISPOSAL_STATUS_TYPES, value)
 
-const resetQuery = () => {
-  dateRange.value = []
-  Object.assign(queryParams, {
-    artifactCode: '',
-    artifactName: '',
-    applicant: '',
-    disposalType: '',
-    status: '',
-    currentStage: '',
-    startDate: '',
-    endDate: '',
-    current: 1,
-    size: 10
-  })
-  getList()
-}
+const createInitialQueryParams = () => ({
+  artifactCode: '',
+  artifactName: '',
+  applicant: '',
+  disposalType: '',
+  status: '',
+  currentStage: '',
+  startDate: '',
+  endDate: '',
+  current: 1,
+  size: 10
+})
+
+const { loading, tableData, total, dateRange, loadPage: getList, handleQuery, resetQuery } = usePageQuery({
+  queryParams,
+  createInitialQueryParams,
+  fetcher: disposalApi.getPage,
+  onError: (error) => {
+    ElMessage.error(error?.response?.data?.message || '加载处置数据失败')
+  }
+})
 
 const handleAdd = () => {
   router.push('/disposal/add')
@@ -283,96 +290,47 @@ const handleEdit = (row) => {
   router.push(`/disposal/edit?id=${row.id}`)
 }
 
-const handleView = async (row) => {
-  currentRow.value = row
-  try {
-    const res = await disposalApi.getFlowHistory(row.id)
-    if (res.code === 200) {
-      flowHistory.value = res.data || []
-    }
-  } catch (error) {
-    flowHistory.value = []
-  }
-  detailVisible.value = true
-}
+const handleView = (row) => openDetail(row)
 
-const handleApprove = (row) => {
-  currentRow.value = row
-  approveForm.disposalId = row.id
-  approveForm.stage = row.currentStage
-  approveForm.approverName = ''
-  approveForm.approverRole = ''
-  approveForm.opinion = ''
-  approveForm.status = 'APPROVED'
-  approveVisible.value = true
-}
+const handleApprove = (row) => openApprove(row)
 
 const submitApprove = async () => {
   try {
     await disposalApi.approve(approveForm)
     ElMessage.success('审批提交成功')
-    approveVisible.value = false
+    closeApprove()
     getList()
   } catch (error) {
-    ElMessage.error('审批提交失败')
+    ElMessage.error(error?.response?.data?.message || '审批提交失败')
   }
 }
 
 const handleDelete = async (row) => {
   try {
-    await ElMessageBox.confirm('确定删除该出馆处置记录吗？', '提示', { type: 'warning' })
+    await ElMessageBox.confirm(`确定删除文物“${row.artifactName}”的处置记录吗？`, '提示', { type: 'warning' })
     await disposalApi.delete(row.id)
     ElMessage.success('删除成功')
     getList()
   } catch (error) {
     if (error !== 'cancel') {
-      ElMessage.error('删除失败')
+      ElMessage.error(error?.response?.data?.message || '删除失败')
     }
   }
 }
-
-const getDisposalTypeLabel = (type) => {
-  const map = { TRANSFER: '移交', DESTROY: '销毁', REMOVE: '退藏', OTHER: '其他' }
-  return map[type] || type
-}
-
-const getStageLabel = (stage) => {
-  const map = { 
-    APPLY: '申请中', 
-    EVALUATION: '专家评估', 
-    PUBLIC: '公示', 
-    RECORD: '备案', 
-    EXECUTION: '执行', 
-    ARCHIVE: '归档', 
-    COMPLETED: '完成' 
-  }
-  return map[stage] || stage
-}
-
-const getStageTagType = (stage) => {
-  const map = { 
-    APPLY: 'info', 
-    EVALUATION: 'warning', 
-    PUBLIC: 'primary', 
-    RECORD: 'success', 
-    EXECUTION: 'danger', 
-    ARCHIVE: 'success', 
-    COMPLETED: 'success' 
-  }
-  return map[stage] || ''
-}
-
-const getStatusLabel = (status) => {
-  const map = { PENDING: '待审批', APPROVED: '已批准', REJECTED: '已拒绝' }
-  return map[status] || status
-}
-
-const getStatusTagType = (status) => {
-  const map = { PENDING: 'warning', APPROVED: 'success', REJECTED: 'danger' }
-  return map[status] || ''
-}
-
-onMounted(() => {
-  getList()
-})
 </script>
+
+<style scoped>
+.process-list-page {
+  display: grid;
+  gap: 16px;
+}
+
+.toolbar-card,
+.table-card {
+  padding: 18px;
+}
+
+.pagination {
+  margin-top: 16px;
+}
+</style>

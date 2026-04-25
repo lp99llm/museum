@@ -7,20 +7,20 @@ const request = axios.create({
 
 // 请求拦截器：自动携带 token
 request.interceptors.request.use(
-  config => {
+  (config) => {
     const token = localStorage.getItem('token')
     if (token && token !== 'undefined' && token !== 'null') {
       config.headers.Authorization = `Bearer ${token}`
     }
     return config
   },
-  error => Promise.reject(error)
+  (error) => Promise.reject(error)
 )
 
 // 响应拦截器：处理 401 未授权
 request.interceptors.response.use(
-  response => response,
-  error => {
+  (response) => response,
+  (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token')
       window.location.href = '/login'
@@ -30,3 +30,5 @@ request.interceptors.response.use(
 )
 
 export default request
+
+export const unwrapData = (response) => response.data

@@ -1,0 +1,320 @@
+:root {
+  color-scheme: light;
+
+  --font-family-sans: 'Inter', 'PingFang SC', 'Microsoft YaHei', 'Roboto', sans-serif;
+  --font-family-number: 'Inter', 'Roboto', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+
+  --museum-color-primary: #2e5a5a;
+  --museum-color-primary-hover: #3c7171;
+  --museum-color-primary-active: #244949;
+  --museum-color-accent: #d4a017;
+
+  --museum-color-success: #52c41a;
+  --museum-color-warning: #faad14;
+  --museum-color-error: #f5222d;
+  --museum-color-info: #1890ff;
+
+  --museum-text-strong: rgba(0, 0, 0, 0.85);
+  --museum-text-primary: rgba(0, 0, 0, 0.85);
+  --museum-text-secondary: rgba(0, 0, 0, 0.65);
+  --museum-text-tertiary: rgba(0, 0, 0, 0.45);
+  --museum-text-inverse: rgba(255, 255, 255, 0.92);
+  --museum-text-inverse-secondary: rgba(255, 255, 255, 0.72);
+
+  --museum-bg-page: #f5f7fa;
+  --museum-bg-subtle: #f0f2f5;
+  --museum-bg-card: #ffffff;
+  --museum-bg-elevated: #ffffff;
+  --museum-bg-nav: linear-gradient(180deg, #244646 0%, #193838 100%);
+  --museum-bg-nav-hover: rgba(255, 255, 255, 0.08);
+  --museum-bg-accent-soft: rgba(212, 160, 23, 0.12);
+
+  --museum-border-light: #e4e7ed;
+  --museum-border-default: #dcdfe6;
+  --museum-border-strong: rgba(46, 90, 90, 0.18);
+
+  --museum-shadow-card: 0 12px 32px rgba(30, 41, 59, 0.08);
+  --museum-shadow-popover: 0 16px 40px rgba(15, 23, 42, 0.12);
+
+  --museum-radius-tag: 4px;
+  --museum-radius-control: 6px;
+  --museum-radius-button: 6px;
+  --museum-radius-card: 8px;
+  --museum-radius-panel: 16px;
+
+  --museum-space-4: 4px;
+  --museum-space-8: 8px;
+  --museum-space-12: 12px;
+  --museum-space-16: 16px;
+  --museum-space-20: 20px;
+  --museum-space-24: 24px;
+  --museum-space-32: 32px;
+  --museum-space-40: 40px;
+  --museum-space-48: 48px;
+
+  --museum-duration-hover: 200ms;
+  --museum-duration-page: 300ms;
+
+  --museum-layout-sidebar-width: 256px;
+  --museum-layout-sidebar-collapsed: 64px;
+  --museum-layout-header-height: 72px;
+
+  --el-color-primary: var(--museum-color-primary);
+  --el-color-primary-light-3: #578787;
+  --el-color-primary-light-5: #7ba2a2;
+  --el-color-primary-light-7: #a8c3c3;
+  --el-color-primary-light-8: #bdd2d2;
+  --el-color-primary-light-9: #d5e4e4;
+  --el-color-success: var(--museum-color-success);
+  --el-color-warning: var(--museum-color-warning);
+  --el-color-danger: var(--museum-color-error);
+  --el-color-info: var(--museum-color-info);
+  --el-border-radius-base: var(--museum-radius-control);
+  --el-border-radius-small: var(--museum-radius-tag);
+  --el-border-color: var(--museum-border-default);
+  --el-border-color-light: var(--museum-border-light);
+  --el-fill-color-blank: var(--museum-bg-card);
+  --el-bg-color: var(--museum-bg-card);
+  --el-bg-color-page: var(--museum-bg-page);
+  --el-text-color-primary: var(--museum-text-primary);
+  --el-text-color-regular: var(--museum-text-secondary);
+  --el-text-color-secondary: var(--museum-text-tertiary);
+  --el-text-color-placeholder: rgba(0, 0, 0, 0.35);
+  --el-box-shadow-light: var(--museum-shadow-card);
+}
+
+:root[data-theme-mode='dark'] {
+  color-scheme: dark;
+
+  --museum-text-strong: rgba(255, 255, 255, 0.92);
+  --museum-text-primary: rgba(255, 255, 255, 0.92);
+  --museum-text-secondary: rgba(255, 255, 255, 0.72);
+  --museum-text-tertiary: rgba(255, 255, 255, 0.48);
+
+  --museum-bg-page: #141414;
+  --museum-bg-subtle: #1a1a1a;
+  --museum-bg-card: #1f1f1f;
+  --museum-bg-elevated: #262626;
+  --museum-bg-nav: linear-gradient(180deg, #163636 0%, #111f1f 100%);
+  --museum-bg-nav-hover: rgba(255, 255, 255, 0.1);
+  --museum-bg-accent-soft: rgba(212, 160, 23, 0.16);
+
+  --museum-border-light: rgba(255, 255, 255, 0.08);
+  --museum-border-default: rgba(255, 255, 255, 0.12);
+  --museum-border-strong: rgba(212, 160, 23, 0.18);
+
+  --museum-shadow-card: 0 12px 28px rgba(0, 0, 0, 0.28);
+  --museum-shadow-popover: 0 20px 48px rgba(0, 0, 0, 0.36);
+
+  --el-border-color: var(--museum-border-default);
+  --el-border-color-light: var(--museum-border-light);
+  --el-fill-color-blank: var(--museum-bg-card);
+  --el-bg-color: var(--museum-bg-card);
+  --el-bg-color-page: var(--museum-bg-page);
+  --el-text-color-primary: var(--museum-text-primary);
+  --el-text-color-regular: var(--museum-text-secondary);
+  --el-text-color-secondary: var(--museum-text-tertiary);
+  --el-text-color-placeholder: rgba(255, 255, 255, 0.32);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
+html {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family-sans);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--museum-text-primary);
+  background:
+    radial-gradient(circle at top right, rgba(212, 160, 23, 0.08), transparent 28%),
+    linear-gradient(180deg, var(--museum-bg-page) 0%, var(--museum-bg-subtle) 100%);
+}
+
+body,
+button,
+input,
+textarea,
+select {
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+h1,
+.page-title {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.4;
+  font-weight: 600;
+  color: var(--museum-text-strong);
+}
+
+h2,
+h3,
+.section-title {
+  line-height: 1.4;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.helper-text,
+.text-tertiary {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--museum-text-tertiary);
+}
+
+.page-shell {
+  min-height: 100vh;
+}
+
+.page-surface,
+.page-card {
+  background: var(--museum-bg-card);
+  border: 1px solid var(--museum-border-light);
+  border-radius: var(--museum-radius-card);
+  box-shadow: var(--museum-shadow-card);
+}
+
+.page-enter {
+  animation: page-enter var(--museum-duration-page) ease;
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.el-button,
+.el-input__wrapper,
+.el-textarea__inner,
+.el-select__wrapper,
+.el-card,
+.el-dialog,
+.el-popover.el-popper {
+  transition:
+    border-color var(--museum-duration-hover) ease,
+    box-shadow var(--museum-duration-hover) ease,
+    background-color var(--museum-duration-hover) ease,
+    color var(--museum-duration-hover) ease,
+    transform var(--museum-duration-hover) ease;
+}
+
+.el-button {
+  border-radius: var(--museum-radius-button);
+  font-weight: 500;
+}
+
+.el-button:hover {
+  transform: translateY(-1px);
+}
+
+.el-button--primary {
+  background: linear-gradient(135deg, var(--museum-color-primary), var(--museum-color-primary-hover));
+  border-color: var(--museum-color-primary);
+}
+
+.el-button--primary:hover,
+.el-button--primary:focus-visible {
+  background: linear-gradient(135deg, var(--museum-color-primary-hover), #4b8484);
+  border-color: var(--museum-color-primary-hover);
+}
+
+.el-button--default:hover,
+.el-button.is-text:hover,
+.el-button.is-link:hover {
+  color: var(--museum-color-primary);
+}
+
+.el-button--warning,
+.el-button--success,
+.el-button--danger {
+  border: none;
+}
+
+.el-input__wrapper,
+.el-textarea__inner,
+.el-select__wrapper,
+.el-input-number {
+  border-radius: var(--museum-radius-control);
+}
+
+.el-input__wrapper.is-focus,
+.el-textarea__inner:focus,
+.el-select__wrapper.is-focused {
+  box-shadow: 0 0 0 1px rgba(46, 90, 90, 0.3) !important;
+}
+
+.el-card {
+  border-radius: var(--museum-radius-card);
+  border-color: var(--museum-border-light);
+  box-shadow: var(--museum-shadow-card);
+}
+
+.el-tag {
+  border-radius: var(--museum-radius-tag);
+}
+
+.el-menu {
+  border-inline-end: none !important;
+}
+
+.el-table {
+  --el-table-border-color: var(--museum-border-light);
+  --el-table-header-bg-color: transparent;
+  --el-table-row-hover-bg-color: rgba(46, 90, 90, 0.05);
+}
+
+.el-notification,
+.el-message,
+.el-message-box,
+.el-dialog,
+.el-popover.el-popper {
+  box-shadow: var(--museum-shadow-popover);
+}
+
+.audit-entry {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--museum-space-8);
+  padding: 0 var(--museum-space-12);
+  height: 32px;
+  border-radius: 999px;
+  color: var(--museum-color-primary);
+  background: var(--museum-bg-accent-soft);
+  border: 1px solid rgba(212, 160, 23, 0.2);
+}
+
+.sensitive-mask {
+  filter: blur(6px);
+  user-select: none;
+}

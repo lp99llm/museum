@@ -80,9 +80,9 @@ const getList = async () => {
   loading.value = true
   try {
     const res = await exhibitionEvaluationApi.getList(queryParams.value)
-    tableData.value = res.data.records || []
-    total.value = res.data.total || 0
-  } catch (error) {
+    tableData.value = res.records || []
+    total.value = res.total || 0
+  } catch {
     ElMessage.error('获取列表失败')
   } finally {
     loading.value = false

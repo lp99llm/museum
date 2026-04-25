@@ -4,7 +4,7 @@
       <template #header>
         <span>{{ isEdit ? '编辑评估报告' : '新增评估报告' }}</span>
       </template>
-      <el-form :model="form" :rules="rules" ref="formRef" label-width="130px">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="130px">
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="展览名称" prop="exhibitionId">
@@ -74,7 +74,7 @@
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="媒体曝光度" prop="mediaCoverage">
-              <el-input v-model="form.mediaCoverage" placeholder="如：高度关注/一般/较少" />
+              <el-input v-model="form.mediaCoverage" placeholder="如：高度关注 / 一般 / 较少" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -110,11 +110,12 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { exhibitionEvaluationApi } from '@/api/exhibitionEvaluation'
 import { exhibitionApi } from '@/api/exhibition'
+import { populateForm } from '@/utils/form'
 
 const route = useRoute()
 const router = useRouter()
@@ -149,8 +150,8 @@ const rules = {
 const loadExhibitions = async () => {
   try {
     const res = await exhibitionApi.getList({ current: 1, size: 100 })
-    exhibitions.value = res.data.records || []
-  } catch (error) {
+    exhibitions.value = res.records || []
+  } catch {
     ElMessage.error('加载展览列表失败')
   }
 }
@@ -159,8 +160,8 @@ const loadData = async () => {
   if (isEdit.value) {
     try {
       const res = await exhibitionEvaluationApi.getDetail(route.params.id)
-      Object.assign(form, res.data)
-    } catch (error) {
+      populateForm(form, res)
+    } catch {
       ElMessage.error('加载数据失败')
     }
   }
@@ -177,7 +178,7 @@ const submitForm = async () => {
       ElMessage.success('创建成功')
     }
     router.push('/exhibition-evaluations')
-  } catch (error) {
+  } catch {
     ElMessage.error('操作失败')
   }
 }

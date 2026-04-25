@@ -4,7 +4,8 @@
       <template #header>
         <span>{{ isEdit ? '编辑预约' : '新增预约' }}</span>
       </template>
-      <el-form :model="form" :rules="rules" ref="formRef" label-width="120px">
+
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="120px">
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="参观者姓名" prop="visitorName">
@@ -71,7 +72,7 @@
         </el-row>
 
         <el-form-item label="备注" prop="remark">
-          <el-input type="textarea" v-model="form.remark" placeholder="请输入备注" rows="3" />
+          <el-input v-model="form.remark" type="textarea" rows="3" placeholder="请输入备注" />
         </el-form-item>
 
         <el-form-item>
@@ -84,17 +85,18 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { visitorAppointmentApi } from '@/api/visitorAppointment'
 import { exhibitionApi } from '@/api/exhibition'
+import { populateForm } from '@/utils/form'
 
 const route = useRoute()
 const router = useRouter()
 const formRef = ref()
 
-const isEdit = computed(() => !!route.params.id)
+const isEdit = computed(() => Boolean(route.params.id))
 
 const form = reactive({
   visitorName: '',
@@ -119,20 +121,19 @@ const rules = {
 const loadExhibitions = async () => {
   try {
     const res = await exhibitionApi.getList({ current: 1, size: 100 })
-    exhibitions.value = res.data.records || []
-  } catch (error) {
+    exhibitions.value = res.records || []
+  } catch {
     ElMessage.error('加载展览列表失败')
   }
 }
 
 const loadData = async () => {
-  if (isEdit.value) {
-    try {
-      const res = await visitorAppointmentApi.getDetail(route.params.id)
-      Object.assign(form, res.data)
-    } catch (error) {
-      ElMessage.error('加载数据失败')
-    }
+  if (!isEdit.value) return
+  try {
+    const res = await visitorAppointmentApi.getDetail(route.params.id)
+    populateForm(form, res)
+  } catch {
+    ElMessage.error('加载预约数据失败')
   }
 }
 
@@ -147,7 +148,7 @@ const submitForm = async () => {
       ElMessage.success('创建成功')
     }
     router.push('/visitor-appointments')
-  } catch (error) {
+  } catch {
     ElMessage.error('操作失败')
   }
 }

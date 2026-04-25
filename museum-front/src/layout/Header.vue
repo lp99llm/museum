@@ -3,7 +3,7 @@
     <el-dropdown @command="handleCommand">
       <span class="user-info">
         {{ userStore.user?.realName || userStore.user?.username }}
-        <el-icon><arrow-down /></el-icon>
+        <el-icon><ArrowDown /></el-icon>
       </span>
       <template #dropdown>
         <el-dropdown-menu>
@@ -15,6 +15,10 @@
 </template>
 
 <script setup>
+defineOptions({
+  name: 'AppHeader'
+})
+
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ArrowDown } from '@element-plus/icons-vue'
@@ -37,6 +41,7 @@ const handleCommand = (command) => {
   flex: 1;
   text-align: right;
 }
+
 .user-info {
   cursor: pointer;
 }

@@ -37,7 +37,7 @@
     </el-card>
 
     <el-card style="margin-top: 16px">
-      <el-table :data="tableData" v-loading="loading" border>
+      <el-table v-loading="loading" :data="tableData" border>
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="artifactCode" label="文物编号" />
         <el-table-column prop="artifactName" label="文物名称" />
@@ -53,7 +53,7 @@
         <el-table-column prop="sourceContact" label="联系人" width="100" />
         <el-table-column prop="acquisitionCost" label="征集费用" width="120">
           <template #default="{ row }">
-            {{ row.acquisitionCost ? '¥' + row.acquisitionCost : '-' }}
+            {{ row.acquisitionCost ? `￥${row.acquisitionCost}` : '-' }}
           </template>
         </el-table-column>
         <el-table-column prop="createdTime" label="创建时间" width="180" />
@@ -80,7 +80,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { acquisitionApi } from '@/api/acquisition'
@@ -113,11 +113,9 @@ const getList = async () => {
       queryParams.endDate = ''
     }
     const res = await acquisitionApi.getPage(queryParams)
-    if (res.code === 200) {
-      tableData.value = res.data.records || []
-      total.value = res.data.total || 0
-    }
-  } catch (error) {
+    tableData.value = res.records || []
+    total.value = res.total || 0
+  } catch {
     ElMessage.error('加载数据失败')
   } finally {
     loading.value = false

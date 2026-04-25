@@ -1,12 +1,12 @@
 <template>
-  <div>
-    <el-card>
+  <div class="process-list-page">
+    <el-card class="toolbar-card">
       <el-form :inline="true" :model="queryParams" @submit.prevent>
         <el-form-item label="文物编号">
-          <el-input v-model="queryParams.artifactCode" placeholder="文物编号" clearable />
+          <el-input v-model="queryParams.artifactCode" placeholder="请输入文物编号" clearable />
         </el-form-item>
         <el-form-item label="文物名称">
-          <el-input v-model="queryParams.artifactName" placeholder="文物名称" clearable />
+          <el-input v-model="queryParams.artifactName" placeholder="请输入文物名称" clearable />
         </el-form-item>
         <el-form-item label="修复类型">
           <el-select v-model="queryParams.restorationType" placeholder="请选择" clearable>
@@ -30,8 +30,8 @@
         <el-form-item label="状态">
           <el-select v-model="queryParams.status" placeholder="请选择" clearable>
             <el-option label="待审批" value="PENDING" />
-            <el-option label="已通过" value="COMPLETED" />
-            <el-option label="已拒绝" value="REJECTED" />
+            <el-option label="已完成" value="COMPLETED" />
+            <el-option label="已驳回" value="REJECTED" />
           </el-select>
         </el-form-item>
         <el-form-item label="申请日期">
@@ -47,34 +47,34 @@
         <el-form-item>
           <el-button type="primary" @click="handleQuery">查询</el-button>
           <el-button @click="resetQuery">重置</el-button>
-          <el-button type="primary" @click="handleAdd">新增修复</el-button>
+          <el-button v-permission="PERMISSIONS.RESTORATION_ADD" type="primary" @click="handleAdd">新增修复</el-button>
         </el-form-item>
       </el-form>
     </el-card>
 
-    <el-card style="margin-top: 16px">
+    <el-card class="table-card">
       <el-table :data="tableData" v-loading="loading" border>
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="artifactCode" label="文物编号" />
         <el-table-column prop="artifactName" label="文物名称" />
         <el-table-column prop="restorationType" label="修复类型" width="100">
           <template #default="{ row }">
-            <el-tag>{{ getTypeLabel(row.restorationType) }}</el-tag>
+            <el-tag>{{ getRestorationTypeLabel(row.restorationType) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="applicant" label="申请人" width="100" />
         <el-table-column prop="applyDate" label="申请日期" width="120" />
         <el-table-column prop="currentStage" label="当前阶段" width="120">
           <template #default="{ row }">
-            <el-tag :type="getStageTagType(row.currentStage)">
-              {{ getStageLabel(row.currentStage) }}
+            <el-tag :type="getRestorationStageType(row.currentStage)">
+              {{ getRestorationStageLabel(row.currentStage) }}
             </el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="status" label="状态" width="100">
           <template #default="{ row }">
-            <el-tag :type="getStatusTagType(row.status)">
-              {{ getStatusLabel(row.status) }}
+            <el-tag :type="getRestorationStatusType(row.status)">
+              {{ getRestorationStatusLabel(row.status) }}
             </el-tag>
           </template>
         </el-table-column>
@@ -83,9 +83,9 @@
         <el-table-column label="操作" width="280">
           <template #default="{ row }">
             <el-button link type="primary" @click="handleView(row)">查看</el-button>
-            <el-button link type="primary" @click="handleEdit(row)" v-if="row.status === 'PENDING'">编辑</el-button>
-            <el-button link type="success" @click="handleApprove(row)" v-if="row.status === 'PENDING'">审批</el-button>
-            <el-button link type="danger" @click="handleDelete(row)" v-if="row.status === 'PENDING'">删除</el-button>
+            <el-button v-if="row.status === 'PENDING'" v-permission="PERMISSIONS.RESTORATION_EDIT" link type="primary" @click="handleEdit(row)">编辑</el-button>
+            <el-button v-if="row.status === 'PENDING'" v-permission="PERMISSIONS.RESTORATION_APPROVE" link type="success" @click="handleApprove(row)">审批</el-button>
+            <el-button v-if="row.status === 'PENDING'" v-permission="PERMISSIONS.RESTORATION_DELETE" link type="danger" @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -96,7 +96,7 @@
         :total="total"
         :page-sizes="[10, 20, 50, 100]"
         layout="total, sizes, prev, pager, next, jumper"
-        style="margin-top: 16px"
+        class="pagination"
         @size-change="getList"
         @current-change="getList"
       />
@@ -106,35 +106,35 @@
       <el-descriptions :column="2" border>
         <el-descriptions-item label="文物编号">{{ currentRow?.artifactCode }}</el-descriptions-item>
         <el-descriptions-item label="文物名称">{{ currentRow?.artifactName }}</el-descriptions-item>
-        <el-descriptions-item label="修复类型">{{ getTypeLabel(currentRow?.restorationType) }}</el-descriptions-item>
+        <el-descriptions-item label="修复类型">{{ getRestorationTypeLabel(currentRow?.restorationType) }}</el-descriptions-item>
         <el-descriptions-item label="申请人">{{ currentRow?.applicant }}</el-descriptions-item>
         <el-descriptions-item label="申请日期">{{ currentRow?.applyDate }}</el-descriptions-item>
         <el-descriptions-item label="修复人">{{ currentRow?.restorer }}</el-descriptions-item>
         <el-descriptions-item label="当前阶段">
-          <el-tag :type="getStageTagType(currentRow?.currentStage)">
-            {{ getStageLabel(currentRow?.currentStage) }}
+          <el-tag :type="getRestorationStageType(currentRow?.currentStage)">
+            {{ getRestorationStageLabel(currentRow?.currentStage) }}
           </el-tag>
         </el-descriptions-item>
         <el-descriptions-item label="状态">
-          <el-tag :type="getStatusTagType(currentRow?.status)">
-            {{ getStatusLabel(currentRow?.status) }}
+          <el-tag :type="getRestorationStatusType(currentRow?.status)">
+            {{ getRestorationStatusLabel(currentRow?.status) }}
           </el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="损伤情况" :span="2">{{ currentRow?.damageCondition }}</el-descriptions-item>
-        <el-descriptions-item label="修复方案" :span="2">{{ currentRow?.planContent }}</el-descriptions-item>
-        <el-descriptions-item label="修复材料" :span="2">{{ currentRow?.planMaterials }}</el-descriptions-item>
-        <el-descriptions-item label="修复步骤" :span="2">{{ currentRow?.planSteps }}</el-descriptions-item>
-        <el-descriptions-item label="修复前状态" :span="2">{{ currentRow?.beforeCondition }}</el-descriptions-item>
-        <el-descriptions-item label="修复后状态" :span="2">{{ currentRow?.afterCondition }}</el-descriptions-item>
-        <el-descriptions-item label="修复结果" :span="2">{{ currentRow?.restorationResult }}</el-descriptions-item>
-        <el-descriptions-item label="验收意见" :span="2">{{ currentRow?.acceptanceOpinion }}</el-descriptions-item>
+        <el-descriptions-item label="损伤情况" :span="2">{{ currentRow?.damageCondition || '暂无' }}</el-descriptions-item>
+        <el-descriptions-item label="修复方案" :span="2">{{ currentRow?.planContent || '暂无' }}</el-descriptions-item>
+        <el-descriptions-item label="修复材料" :span="2">{{ currentRow?.planMaterials || '暂无' }}</el-descriptions-item>
+        <el-descriptions-item label="修复步骤" :span="2">{{ currentRow?.planSteps || '暂无' }}</el-descriptions-item>
+        <el-descriptions-item label="修复前状态" :span="2">{{ currentRow?.beforeCondition || '暂无' }}</el-descriptions-item>
+        <el-descriptions-item label="修复后状态" :span="2">{{ currentRow?.afterCondition || '暂无' }}</el-descriptions-item>
+        <el-descriptions-item label="修复结果" :span="2">{{ currentRow?.restorationResult || '暂无' }}</el-descriptions-item>
+        <el-descriptions-item label="验收意见" :span="2">{{ currentRow?.acceptanceOpinion || '暂无' }}</el-descriptions-item>
       </el-descriptions>
 
       <el-divider>审批历史</el-divider>
       <el-timeline v-if="flowHistory.length > 0">
         <el-timeline-item v-for="item in flowHistory" :key="item.id" :timestamp="item.approveTime" placement="top">
-          <p><strong>{{ item.stageName }}</strong> - {{ item.approverName }} ({{ item.approverRole }})</p>
-          <p>意见: {{ item.approvalOpinion }}</p>
+          <p><strong>{{ item.stageName }}</strong> - {{ item.approverName }}（{{ item.approverRole }}）</p>
+          <p>意见：{{ item.approvalOpinion }}</p>
           <el-tag :type="item.status === 'APPROVED' ? 'success' : 'danger'" size="small">
             {{ item.status === 'APPROVED' ? '通过' : '拒绝' }}
           </el-tag>
@@ -168,8 +168,8 @@
         </el-form-item>
         <el-form-item label="审批结果">
           <el-radio-group v-model="approveForm.status">
-            <el-radio label="APPROVED">通过</el-radio>
-            <el-radio label="REJECTED">拒绝</el-radio>
+            <el-radio value="APPROVED">通过</el-radio>
+            <el-radio value="REJECTED">拒绝</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>
@@ -182,21 +182,24 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { restorationApi } from '@/api/restoration'
+import { useFlowDialogs } from '@/composables/useFlowDialogs'
+import { usePageQuery } from '@/composables/usePageQuery'
+import { PERMISSIONS } from '@/constants/permissions'
+import {
+  RESTORATION_STAGE_LABELS,
+  RESTORATION_STAGE_TYPES,
+  RESTORATION_STATUS_LABELS,
+  RESTORATION_STATUS_TYPES,
+  RESTORATION_TYPE_LABELS,
+  getStatusLabel,
+  getStatusType
+} from '@/utils/status'
 
 const router = useRouter()
-const loading = ref(false)
-const tableData = ref([])
-const total = ref(0)
-const dateRange = ref([])
-const detailVisible = ref(false)
-const approveVisible = ref(false)
-const currentRow = ref(null)
-const flowHistory = ref([])
-
 const queryParams = reactive({
   artifactCode: '',
   artifactName: '',
@@ -218,48 +221,54 @@ const approveForm = reactive({
   status: 'APPROVED'
 })
 
-const getList = async () => {
-  loading.value = true
-  try {
-    if (dateRange.value && dateRange.value.length === 2) {
-      queryParams.startDate = dateRange.value[0]
-      queryParams.endDate = dateRange.value[1]
-    } else {
-      queryParams.startDate = ''
-      queryParams.endDate = ''
-    }
-    const res = await restorationApi.getPage(queryParams)
-    if (res.code === 200) {
-      tableData.value = res.data.records || []
-      total.value = res.data.total || 0
-    }
-  } catch (error) {
-    ElMessage.error('加载数据失败')
-  } finally {
-    loading.value = false
+const {
+  currentRow,
+  flowHistory,
+  detailVisible,
+  approveVisible,
+  openDetail,
+  openApprove,
+  closeApprove
+} = useFlowDialogs({
+  loadHistory: (row) => restorationApi.getFlowHistory(row.id),
+  initApprove: (row) => {
+    approveForm.restorationId = row.id
+    approveForm.stage = row.currentStage || 'APPLY'
+    approveForm.approverName = ''
+    approveForm.approverRole = ''
+    approveForm.opinion = ''
+    approveForm.status = 'APPROVED'
   }
-}
+})
 
-const handleQuery = () => {
-  queryParams.current = 1
-  getList()
-}
+const getRestorationTypeLabel = (value) => getStatusLabel(RESTORATION_TYPE_LABELS, value)
+const getRestorationStageLabel = (value) => getStatusLabel(RESTORATION_STAGE_LABELS, value)
+const getRestorationStageType = (value) => getStatusType(RESTORATION_STAGE_TYPES, value)
+const getRestorationStatusLabel = (value) => getStatusLabel(RESTORATION_STATUS_LABELS, value)
+const getRestorationStatusType = (value) => getStatusType(RESTORATION_STATUS_TYPES, value)
 
-const resetQuery = () => {
-  dateRange.value = []
-  Object.assign(queryParams, {
-    artifactCode: '',
-    artifactName: '',
-    status: '',
-    currentStage: '',
-    restorationType: '',
-    startDate: '',
-    endDate: '',
-    current: 1,
-    size: 10
-  })
-  getList()
-}
+const createInitialQueryParams = () => ({
+  artifactCode: '',
+  artifactName: '',
+  status: '',
+  currentStage: '',
+  restorationType: '',
+  startDate: '',
+  endDate: '',
+  current: 1,
+  size: 10
+})
+
+const { loading, tableData, total, dateRange, loadPage: getList, handleQuery, resetQuery: resetPageQuery } = usePageQuery({
+  queryParams,
+  createInitialQueryParams,
+  fetcher: restorationApi.getPage,
+  onError: (error) => {
+    ElMessage.error(error?.response?.data?.message || '加载修复数据失败')
+  }
+})
+
+const resetQuery = () => resetPageQuery()
 
 const handleAdd = () => {
   router.push('/restoration/add')
@@ -269,80 +278,47 @@ const handleEdit = (row) => {
   router.push(`/restoration/edit?id=${row.id}`)
 }
 
-const handleView = async (row) => {
-  currentRow.value = row
-  try {
-    const res = await restorationApi.getFlowHistory(row.id)
-    if (res.code === 200) {
-      flowHistory.value = res.data || []
-    }
-  } catch (error) {
-    flowHistory.value = []
-  }
-  detailVisible.value = true
-}
+const handleView = (row) => openDetail(row)
 
-const handleApprove = (row) => {
-  currentRow.value = row
-  approveForm.restorationId = row.id
-  approveForm.stage = row.currentStage
-  approveForm.approverName = ''
-  approveForm.approverRole = ''
-  approveForm.opinion = ''
-  approveForm.status = 'APPROVED'
-  approveVisible.value = true
-}
+const handleApprove = (row) => openApprove(row)
 
 const submitApprove = async () => {
   try {
     await restorationApi.approve(approveForm)
     ElMessage.success('审批提交成功')
-    approveVisible.value = false
+    closeApprove()
     getList()
   } catch (error) {
-    ElMessage.error('审批提交失败')
+    ElMessage.error(error?.response?.data?.message || '审批提交失败')
   }
 }
 
 const handleDelete = async (row) => {
   try {
-    await ElMessageBox.confirm('确定删除该修复记录吗？', '提示', { type: 'warning' })
+    await ElMessageBox.confirm(`确定删除文物“${row.artifactName}”的修复记录吗？`, '提示', { type: 'warning' })
     await restorationApi.delete(row.id)
     ElMessage.success('删除成功')
     getList()
   } catch (error) {
     if (error !== 'cancel') {
-      ElMessage.error('删除失败')
+      ElMessage.error(error?.response?.data?.message || '删除失败')
     }
   }
 }
-
-const getTypeLabel = (type) => {
-  const map = { CLEANING: '除尘清理', REINFORCEMENT: '加固', RESTORATION: '补配', AGING: '做旧', PROTECTION: '防护处理', OTHER: '其他' }
-  return map[type] || type
-}
-
-const getStageLabel = (stage) => {
-  const map = { APPLY: '申请中', PLAN: '方案编制', EXECUTE: '修复执行', ACCEPTANCE: '验收中', COMPLETED: '已完成' }
-  return map[stage] || stage
-}
-
-const getStageTagType = (stage) => {
-  const map = { APPLY: 'info', PLAN: '', EXECUTE: 'warning', ACCEPTANCE: 'danger', COMPLETED: 'success' }
-  return map[stage] || ''
-}
-
-const getStatusLabel = (status) => {
-  const map = { PENDING: '待审批', COMPLETED: '已完成', REJECTED: '已拒绝' }
-  return map[status] || status
-}
-
-const getStatusTagType = (status) => {
-  const map = { PENDING: 'warning', COMPLETED: 'success', REJECTED: 'danger' }
-  return map[status] || ''
-}
-
-onMounted(() => {
-  getList()
-})
 </script>
+
+<style scoped>
+.process-list-page {
+  display: grid;
+  gap: 16px;
+}
+
+.toolbar-card,
+.table-card {
+  padding: 18px;
+}
+
+.pagination {
+  margin-top: 16px;
+}
+</style>

@@ -10,10 +10,7 @@
         </el-form-item>
         <el-form-item label="鉴定等级">
           <el-select v-model="queryParams.appraisalLevel" placeholder="请选择" clearable>
-            <el-option label="一级" value="LEVEL1" />
-            <el-option label="二级" value="LEVEL2" />
-            <el-option label="三级" value="LEVEL3" />
-            <el-option label="四级" value="LEVEL4" />
+            <el-option v-for="item in appraisalLevelOptions" :key="item" :label="item" :value="item" />
           </el-select>
         </el-form-item>
         <el-form-item label="专家姓名">
@@ -38,23 +35,23 @@
     </el-card>
 
     <el-card style="margin-top: 16px">
-      <el-table :data="tableData" v-loading="loading" border>
+      <el-table v-loading="loading" :data="tableData" border>
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="artifactCode" label="文物编号" />
         <el-table-column prop="artifactName" label="文物名称" />
         <el-table-column prop="appraisalDate" label="鉴定日期" width="120" />
         <el-table-column prop="expertName" label="专家姓名" width="100" />
-        <el-table-column prop="expertTitle" label="专家职称" width="100" />
+        <el-table-column prop="expertTitle" label="专家职称" width="120" />
         <el-table-column prop="appraisalLevel" label="鉴定等级" width="100">
           <template #default="{ row }">
-            <el-tag :type="getLevelTagType(row.appraisalLevel)">
-              {{ getLevelLabel(row.appraisalLevel) }}
+            <el-tag :type="getAppraisalLevelType(row.appraisalLevel)">
+              {{ getAppraisalLevelLabel(row.appraisalLevel) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="estimatedValue" label="估值金额" width="120">
+        <el-table-column prop="estimatedValue" label="估价金额" width="140">
           <template #default="{ row }">
-            {{ row.estimatedValue ? '¥' + row.estimatedValue : '-' }}
+            {{ row.estimatedValue ? `￥${row.estimatedValue}` : '-' }}
           </template>
         </el-table-column>
         <el-table-column prop="appraisalResult" label="鉴定结果" show-overflow-tooltip />
@@ -82,16 +79,19 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { appraisalApi } from '@/api/appraisal'
+import { getAppraisalLevelLabel, getAppraisalLevelType, normalizeAppraisalLevel } from '@/utils/status'
 
 const router = useRouter()
 const loading = ref(false)
 const tableData = ref([])
 const total = ref(0)
 const dateRange = ref([])
+
+const appraisalLevelOptions = ['一级', '二级', '三级', '四级', '一般文物']
 
 const queryParams = reactive({
   artifactCode: '',
@@ -104,6 +104,11 @@ const queryParams = reactive({
   size: 10
 })
 
+const normalizeRow = (row) => ({
+  ...row,
+  appraisalLevel: normalizeAppraisalLevel(row.appraisalLevel)
+})
+
 const getList = async () => {
   loading.value = true
   try {
@@ -114,12 +119,14 @@ const getList = async () => {
       queryParams.startDate = ''
       queryParams.endDate = ''
     }
-    const res = await appraisalApi.getPage(queryParams)
-    if (res.code === 200) {
-      tableData.value = res.data.records || []
-      total.value = res.data.total || 0
+    const payload = {
+      ...queryParams,
+      appraisalLevel: normalizeAppraisalLevel(queryParams.appraisalLevel) || ''
     }
-  } catch (error) {
+    const res = await appraisalApi.getPage(payload)
+    tableData.value = (res.records || []).map(normalizeRow)
+    total.value = res.total || 0
+  } catch {
     ElMessage.error('加载数据失败')
   } finally {
     loading.value = false
@@ -167,16 +174,6 @@ const handleDelete = async (row) => {
       ElMessage.error('删除失败')
     }
   }
-}
-
-const getLevelLabel = (level) => {
-  const map = { LEVEL1: '一级', LEVEL2: '二级', LEVEL3: '三级', LEVEL4: '四级' }
-  return map[level] || level
-}
-
-const getLevelTagType = (level) => {
-  const map = { LEVEL1: 'danger', LEVEL2: 'warning', LEVEL3: 'success', LEVEL4: 'info' }
-  return map[level] || ''
 }
 
 onMounted(() => {

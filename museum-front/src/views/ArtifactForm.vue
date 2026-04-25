@@ -4,7 +4,8 @@
       <template #header>
         <span>{{ isEdit ? '编辑文物' : '新增文物' }}</span>
       </template>
-      <el-form :model="form" :rules="rules" ref="formRef" label-width="120px">
+
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="120px">
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="文物编号" prop="code">
@@ -22,21 +23,13 @@
           <el-col :span="12">
             <el-form-item label="类别" prop="category">
               <el-select v-model="form.category" placeholder="请选择类别" style="width: 100%">
-                <el-option label="陶瓷" value="陶瓷" />
-                <el-option label="书画" value="书画" />
-                <el-option label="玉器" value="玉器" />
-                <el-option label="青铜器" value="青铜器" />
-                <el-option label="金银器" value="金银器" />
-                <el-option label="铁器" value="铁器" />
-                <el-option label="漆器" value="漆器" />
-                <el-option label="织绣" value="织绣" />
-                <el-option label="其他" value="其他" />
+                <el-option v-for="item in categoryOptions" :key="item" :label="item" :value="item" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="年代" prop="era">
-              <el-input v-model="form.era" placeholder="如：唐代、清代" />
+              <el-input v-model="form.era" placeholder="例如：汉代、清代" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -49,7 +42,7 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="尺寸" prop="size">
-              <el-input v-model="form.size" placeholder="如：30cm×20cm×15cm" />
+              <el-input v-model="form.size" placeholder="例如：12×36×28cm" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -57,34 +50,28 @@
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="重量" prop="weight">
-              <el-input v-model="form.weight" placeholder="请输入重量（克）" type="number" />
+              <el-input-number v-model="form.weight" :min="0" :precision="2" style="width: 100%" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="来源" prop="source">
-              <el-input v-model="form.source" placeholder="请输入文物来源" />
+              <el-input v-model="form.source" placeholder="请输入来源信息" />
             </el-form-item>
           </el-col>
         </el-row>
 
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="保存状况" prop="preservationStatus">
-              <el-select v-model="form.preservationStatus" placeholder="请选择保存状况" style="width: 100%">
-                <el-option label="完好" value="完好" />
-                <el-option label="轻度破损" value="轻度破损" />
-                <el-option label="中度破损" value="中度破损" />
-                <el-option label="重度破损" value="重度破损" />
+            <el-form-item label="保存状态" prop="preservationStatus">
+              <el-select v-model="form.preservationStatus" placeholder="请选择保存状态" style="width: 100%">
+                <el-option v-for="item in preservationOptions" :key="item" :label="item" :value="item" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="鉴定等级" prop="appraisalLevel">
               <el-select v-model="form.appraisalLevel" placeholder="请选择鉴定等级" style="width: 100%">
-                <el-option label="一级文物" value="一级" />
-                <el-option label="二级文物" value="二级" />
-                <el-option label="三级文物" value="三级" />
-                <el-option label="一般文物" value="一般" />
+                <el-option v-for="item in appraisalOptions" :key="item" :label="item" :value="item" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -95,52 +82,53 @@
             <el-form-item label="当前状态" prop="currentState">
               <el-select v-model="form.currentState" placeholder="请选择当前状态" style="width: 100%">
                 <el-option label="在库" value="IN_STORAGE" />
-                <el-option label="展览中" value="IN_EXHIBITION" />
+                <el-option label="展出中" value="IN_EXHIBITION" />
                 <el-option label="修复中" value="IN_RESTORATION" />
                 <el-option label="外借中" value="ON_LOAN" />
-                <el-option label="征集入库" value="ACQUIRED" />
-                <el-option label="已处置" value="DISPOSED" />
+                <el-option label="出库中" value="OUTBOUND" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="出土地点" prop="location">
-              <el-input v-model="form.location" placeholder="请输入出土地点" />
+            <el-form-item label="存放位置" prop="location">
+              <el-input v-model="form.location" placeholder="请输入当前存放位置" />
             </el-form-item>
           </el-col>
         </el-row>
 
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="现藏地点" prop="currentLocation">
-              <el-input v-model="form.currentLocation" placeholder="请输入现藏地点" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="保存环境要求" prop="environmentRequirements">
-              <el-input v-model="form.environmentRequirements" placeholder="如：温度18-22℃，湿度45-55%" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-
-        <el-form-item label="文物图片" prop="imageUrl">
-          <el-input v-model="form.imageUrl" placeholder="请输入文物图片URL" />
+        <el-form-item label="主图地址" prop="imageUrl">
+          <el-input v-model="form.imageUrl" placeholder="请输入图片 URL" />
         </el-form-item>
 
         <el-form-item label="保险信息" prop="insuranceInfo">
-          <el-input v-model="form.insuranceInfo" placeholder="请输入保险信息" />
+          <el-input
+            v-model="form.insuranceInfo"
+            type="textarea"
+            :rows="3"
+            placeholder='支持纯文本或 JSON，例如：{"company":"保险机构","policyNo":"保单号","coverage":"保额"}'
+          />
         </el-form-item>
 
-        <el-form-item label="相关文献资料" prop="documents">
-          <el-input type="textarea" v-model="form.documents" placeholder="请输入相关文献资料" rows="3" />
+        <el-form-item label="环境要求" prop="environmentRequirements">
+          <el-input
+            v-model="form.environmentRequirements"
+            type="textarea"
+            :rows="3"
+            placeholder='支持纯文本或 JSON，例如：{"temperature":"18-22°C","humidity":"45%-55%","light":"≤50 lux","notes":"特殊要求"}'
+          />
         </el-form-item>
 
-        <el-form-item label="文物简介" prop="description">
-          <el-input type="textarea" v-model="form.description" placeholder="请输入文物简介" rows="4" />
+        <el-form-item label="资料附件" prop="documents">
+          <el-input
+            v-model="form.documents"
+            type="textarea"
+            :rows="3"
+            placeholder="支持填写逗号分隔的资料 URL，或 JSON 数组"
+          />
         </el-form-item>
 
         <el-form-item>
-          <el-button type="primary" @click="submitForm">保存</el-button>
+          <el-button type="primary" :loading="saving" @click="submitForm">保存</el-button>
           <el-button @click="goBack">取消</el-button>
         </el-form-item>
       </el-form>
@@ -149,18 +137,29 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { artifactApi } from '@/api/artifact'
+import {
+  normalizeAppraisalLevel,
+  normalizeArtifactState,
+  normalizePreservationStatus
+} from '@/utils/status'
 
 const route = useRoute()
 const router = useRouter()
 const formRef = ref()
+const saving = ref(false)
 
-const isEdit = computed(() => !!route.params.id)
+const categoryOptions = ['青铜器', '陶瓷', '书画', '玉器', '杂项', '金银器', '织绣']
+const preservationOptions = ['完好', '轻微损伤', '待修复', '修复中']
+const appraisalOptions = ['一级', '二级', '三级', '四级', '一般文物']
+
+const isEdit = computed(() => Boolean(route.params.id))
 
 const form = reactive({
+  id: null,
   code: '',
   name: '',
   category: '',
@@ -172,13 +171,11 @@ const form = reactive({
   preservationStatus: '',
   appraisalLevel: '',
   currentState: 'IN_STORAGE',
-  imageUrl: '',
-  documents: '',
-  environmentRequirements: '',
-  insuranceInfo: '',
   location: '',
-  currentLocation: '',
-  description: ''
+  imageUrl: '',
+  insuranceInfo: '',
+  environmentRequirements: '',
+  documents: ''
 })
 
 const rules = {
@@ -187,30 +184,60 @@ const rules = {
   category: [{ required: true, message: '请选择类别', trigger: 'change' }]
 }
 
-const loadData = async () => {
-  if (isEdit.value) {
-    try {
-      const res = await artifactApi.getDetail(route.params.id)
-      Object.assign(form, res.data)
-    } catch (error) {
-      ElMessage.error('加载数据失败')
-    }
+const loadDetail = async () => {
+  if (!isEdit.value) return
+  try {
+    const data = await artifactApi.getDetail(route.params.id)
+    Object.assign(form, {
+      id: data.id,
+      code: data.code || '',
+      name: data.name || '',
+      category: data.category || '',
+      era: data.era || '',
+      material: data.material || '',
+      size: data.size || '',
+      weight: data.weight ?? null,
+      source: data.source || '',
+      preservationStatus: normalizePreservationStatus(data.preservationStatus),
+      appraisalLevel: normalizeAppraisalLevel(data.appraisalLevel),
+      currentState: normalizeArtifactState(data.currentState) || 'IN_STORAGE',
+      location: data.location || data.currentLocation || '',
+      imageUrl: data.imageUrl || '',
+      insuranceInfo: data.insuranceInfo || '',
+      environmentRequirements: data.environmentRequirements || '',
+      documents: data.documents || ''
+    })
+  } catch (error) {
+    ElMessage.error(error?.response?.data?.message || '获取文物信息失败')
   }
 }
 
 const submitForm = async () => {
-  await formRef.value.validate()
+  const valid = await formRef.value?.validate().catch(() => false)
+  if (!valid) return
+
+  saving.value = true
   try {
+    const payload = {
+      ...form,
+      preservationStatus: normalizePreservationStatus(form.preservationStatus),
+      appraisalLevel: normalizeAppraisalLevel(form.appraisalLevel),
+      currentState: normalizeArtifactState(form.currentState) || 'IN_STORAGE',
+      weight: form.weight === null || form.weight === '' ? null : Number(form.weight)
+    }
+
     if (isEdit.value) {
-      await artifactApi.update(form)
-      ElMessage.success('更新成功')
+      await artifactApi.update(payload)
+      ElMessage.success('文物信息已更新')
     } else {
-      await artifactApi.create(form)
-      ElMessage.success('创建成功')
+      await artifactApi.create(payload)
+      ElMessage.success('文物信息已创建')
     }
     router.push('/artifacts')
   } catch (error) {
-    ElMessage.error('操作失败')
+    ElMessage.error(error?.response?.data?.message || (isEdit.value ? '更新失败' : '创建失败'))
+  } finally {
+    saving.value = false
   }
 }
 
@@ -219,7 +246,7 @@ const goBack = () => {
 }
 
 onMounted(() => {
-  loadData()
+  loadDetail()
 })
 </script>
 

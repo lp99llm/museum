@@ -18,8 +18,8 @@ export const useArtifactStore = defineStore('artifact', {
       this.loading = true
       try {
         const res = await artifactApi.getList(this.queryParams)
-        this.list = res.data.items || res.data
-        this.total = res.data.total || this.list.length
+        this.list = res.records || []
+        this.total = res.total || 0
       } catch (error) {
         console.error('获取文物列表失败', error)
       } finally {
@@ -28,7 +28,7 @@ export const useArtifactStore = defineStore('artifact', {
     },
     async fetchDetail(id) {
       const res = await artifactApi.getDetail(id)
-      this.current = res.data
+      this.current = res
       return this.current
     },
     async createArtifact(data) {
@@ -39,7 +39,7 @@ export const useArtifactStore = defineStore('artifact', {
     async updateArtifact(id, data) {
       const res = await artifactApi.update(id, data)
       await this.fetchList()
-      if (this.current?.id === id) this.current = res.data
+      if (this.current?.id === id) this.current = res
       return res
     },
     async deleteArtifact(id) {

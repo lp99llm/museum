@@ -4,7 +4,7 @@
       <template #header>
         <span>{{ isEdit ? '编辑检查记录' : '新增检查记录' }}</span>
       </template>
-      <el-form :model="form" :rules="rules" ref="formRef" label-width="140px">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="140px">
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="文物编号" prop="artifactCode">
@@ -21,13 +21,7 @@
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="检查日期" prop="checkDate">
-              <el-date-picker
-                v-model="form.checkDate"
-                type="date"
-                placeholder="选择日期"
-                value-format="YYYY-MM-DD"
-                style="width: 100%"
-              />
+              <el-date-picker v-model="form.checkDate" type="date" placeholder="选择日期" value-format="YYYY-MM-DD" style="width: 100%" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -73,13 +67,7 @@
           </el-col>
           <el-col :span="8">
             <el-form-item label="下次检查日期" prop="nextCheckDate">
-              <el-date-picker
-                v-model="form.nextCheckDate"
-                type="date"
-                placeholder="选择日期"
-                value-format="YYYY-MM-DD"
-                style="width: 100%"
-              />
+              <el-date-picker v-model="form.nextCheckDate" type="date" placeholder="选择日期" value-format="YYYY-MM-DD" style="width: 100%" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -167,7 +155,7 @@
         </el-row>
 
         <el-form-item>
-          <el-button type="primary" @click="handleSubmit" :loading="submitting">保存</el-button>
+          <el-button type="primary" :loading="submitting" @click="handleSubmit">保存</el-button>
           <el-button @click="handleBack">返回</el-button>
         </el-form-item>
       </el-form>
@@ -176,16 +164,16 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { storageCheckApi } from '@/api/storageCheck'
+import { populateForm } from '@/utils/form'
 
 const router = useRouter()
 const route = useRoute()
 const formRef = ref(null)
 const submitting = ref(false)
-
 const isEdit = computed(() => !!route.query.id)
 
 const form = reactive({
@@ -221,10 +209,8 @@ const loadData = async () => {
   if (!route.query.id) return
   try {
     const res = await storageCheckApi.getDetail(route.query.id)
-    if (res.code === 200 && res.data) {
-      Object.assign(form, res.data)
-    }
-  } catch (error) {
+    populateForm(form, res)
+  } catch {
     ElMessage.error('加载数据失败')
   }
 }
@@ -243,7 +229,7 @@ const handleSubmit = async () => {
       ElMessage.success('创建成功')
     }
     router.push('/storage-check/list')
-  } catch (error) {
+  } catch {
     ElMessage.error(isEdit.value ? '更新失败' : '创建失败')
   } finally {
     submitting.value = false
