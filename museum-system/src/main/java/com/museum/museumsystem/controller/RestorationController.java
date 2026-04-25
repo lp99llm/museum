@@ -7,6 +7,7 @@ import com.museum.museumsystem.entity.Restoration;
 import com.museum.museumsystem.entity.RestorationFlow;
 import com.museum.museumsystem.service.RestorationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -21,16 +22,19 @@ public class RestorationController {
     private final RestorationService restorationService;
 
     @PostMapping("/page")
+    @PreAuthorize("hasAuthority('restoration:view')")
     public Result<PageResult<Restoration>> page(@RequestBody @Valid RestorationQueryDTO queryDTO) {
         return Result.success(restorationService.pageQuery(queryDTO));
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('restoration:view')")
     public Result<Restoration> getById(@PathVariable Long id) {
         return Result.success(restorationService.getById(id));
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('restoration:add')")
     public Result<Void> add(@RequestBody @Valid Restoration restoration) {
         restoration.setStatus("PENDING");
         restoration.setCurrentStage("APPLY");
@@ -39,18 +43,21 @@ public class RestorationController {
     }
 
     @PutMapping
+    @PreAuthorize("hasAuthority('restoration:edit')")
     public Result<Void> update(@RequestBody @Valid Restoration restoration) {
         restorationService.updateById(restoration);
         return Result.success();
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('restoration:delete')")
     public Result<Void> delete(@PathVariable Long id) {
         restorationService.removeById(id);
         return Result.success();
     }
 
     @PostMapping("/approve")
+    @PreAuthorize("hasAuthority('restoration:approve')")
     public Result<Void> approve(@RequestBody Map<String, String> params) {
         Long restorationId = Long.parseLong(params.get("restorationId"));
         String stage = params.get("stage");
@@ -63,6 +70,7 @@ public class RestorationController {
     }
 
     @GetMapping("/{id}/flow")
+    @PreAuthorize("hasAuthority('restoration:view')")
     public Result<List<RestorationFlow>> getFlowHistory(@PathVariable Long id) {
         return Result.success(restorationService.getFlowHistory(id));
     }

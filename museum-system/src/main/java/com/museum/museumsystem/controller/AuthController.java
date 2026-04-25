@@ -1,13 +1,17 @@
 package com.museum.museumsystem.controller;
 
 import com.museum.museumsystem.dto.request.LoginRequest;
-import com.museum.museumsystem.dto.request.UserRegisterRequest;
 import com.museum.museumsystem.dto.request.ResetPasswordRequest;
+import com.museum.museumsystem.dto.request.UserRegisterRequest;
 import com.museum.museumsystem.dto.response.LoginResponse;
 import com.museum.museumsystem.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import javax.validation.Valid;
 import java.util.Map;
 

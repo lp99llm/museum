@@ -29,10 +29,12 @@ public class Artifact {
     private String environmentRequirements;
     private String insuranceInfo;
     private String location;
+    @TableField(exist = false)
     private String currentLocation;
+    @TableField(exist = false)
     private String description;
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdTime;
-    @TableField(fill = FieldFill.INSERT_UPDATE)
+    @TableField(value = "updated_time", fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
 }

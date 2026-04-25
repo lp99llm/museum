@@ -1,0 +1,4 @@
+# Backend runtime artifacts
+museum-system/*.log
+museum-system/*.pid
+museum-system/tmp-*

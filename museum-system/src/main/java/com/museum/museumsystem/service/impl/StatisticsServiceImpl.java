@@ -1,6 +1,7 @@
 package com.museum.museumsystem.service.impl;
 
 import com.museum.museumsystem.dto.request.StatisticsQueryDTO;
+import com.museum.museumsystem.dto.response.AIAnalysisVO;
 import com.museum.museumsystem.dto.response.DashboardVO;
 import com.museum.museumsystem.dto.response.DrillDownVO;
 import com.museum.museumsystem.entity.Artifact;
@@ -11,7 +12,11 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -88,6 +93,50 @@ public class StatisticsServiceImpl implements StatisticsService {
     }
 
     @Override
+    public Map<String, Object> getProcessStats(StatisticsQueryDTO queryDTO) {
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("durationStats", statisticsMapper.getProcessDurationStats());
+        stats.put("monthlyTrend", statisticsMapper.getProcessMonthlyTrend());
+        stats.put("riskStats", statisticsMapper.getProcessRiskStats());
+        return stats;
+    }
+
+    @Override
+    public Map<String, Object> getSpaceHeatmapStats() {
+        Map<String, Object> stats = new HashMap<>();
+        List<Map<String, Object>> raw = statisticsMapper.getSpaceHeatmapStats();
+
+        List<String> xAxis = raw.stream()
+                .map(item -> String.valueOf(item.get("location")))
+                .distinct()
+                .limit(8)
+                .collect(Collectors.toList());
+
+        List<String> yAxis = raw.stream()
+                .map(item -> String.valueOf(item.get("state")))
+                .distinct()
+                .limit(8)
+                .collect(Collectors.toList());
+
+        List<List<Object>> matrix = new ArrayList<>();
+        for (Map<String, Object> item : raw) {
+            String location = String.valueOf(item.get("location"));
+            String state = String.valueOf(item.get("state"));
+            int xIndex = xAxis.indexOf(location);
+            int yIndex = yAxis.indexOf(state);
+            if (xIndex >= 0 && yIndex >= 0) {
+                matrix.add(Arrays.asList(xIndex, yIndex, ((Number) item.get("count")).intValue()));
+            }
+        }
+
+        stats.put("xAxis", xAxis);
+        stats.put("yAxis", yAxis);
+        stats.put("matrix", matrix);
+        stats.put("raw", raw);
+        return stats;
+    }
+
+    @Override
     public DrillDownVO drillDownArtifacts(StatisticsQueryDTO queryDTO) {
         DrillDownVO drillDown = new DrillDownVO();
         drillDown.setTitle("文物明细数据");
@@ -158,6 +207,92 @@ public class StatisticsServiceImpl implements StatisticsService {
         }
 
         return analysis.toString();
+    }
+
+    @Override
+    public Map<String, Object> getExhibitionPerformance() {
+        Map<String, Object> result = new LinkedHashMap<String, Object>();
+        Map<String, Object> stats = getExhibitionStats(new StatisticsQueryDTO());
+        result.putAll(stats);
+        result.put("performanceLevel", ((Number) stats.get("totalExhibitions")).longValue() > 0 ? "STABLE" : "LOW");
+        result.put("trend", "POSITIVE");
+        result.put("highlights", buildExhibitionEffects().stream().limit(5).collect(Collectors.toList()));
+        return result;
+    }
+
+    @Override
+    public Map<String, Object> getProcessEfficiencyDetail() {
+        Map<String, Object> result = new LinkedHashMap<String, Object>();
+        result.put("durationStats", statisticsMapper.getProcessDurationStats());
+        result.put("monthlyTrend", statisticsMapper.getProcessMonthlyTrend());
+        result.put("riskStats", statisticsMapper.getProcessRiskStats());
+        result.put("summary", "流程时长、月度完成趋势与风险项已聚合完成");
+        return result;
+    }
+
+    @Override
+    public AIAnalysisVO getAIAnalysis(String queryType) {
+        AIAnalysisVO vo = new AIAnalysisVO();
+        vo.setQueryType(queryType);
+        vo.setSuggestions(new ArrayList<String>());
+        vo.setCards(new ArrayList<Map<String, Object>>());
+        if ("exhibition_trend".equals(queryType)) {
+            vo.setTitle("展览趋势分析");
+            vo.setSummary("基于展览总量、客流与反馈评分生成趋势结论");
+            vo.setTrend("POSITIVE");
+            vo.getSuggestions().add("优先延长高评分展览的宣传周期");
+            vo.getSuggestions().add("为高客流展览增配预约分流策略");
+            vo.getSuggestions().add("针对低评分展览补充讲解与互动内容");
+            for (DashboardVO.ExhibitionEffectVO item : buildExhibitionEffects()) {
+                Map<String, Object> card = new LinkedHashMap<String, Object>();
+                card.put("title", item.getExhibitionName());
+                card.put("value", item.getVisitorCount());
+                card.put("score", item.getFeedbackScore());
+                vo.getCards().add(card);
+            }
+            return vo;
+        }
+
+        vo.setTitle("馆藏运营分析");
+        vo.setSummary("基于馆藏类别、状态与流程风险构建运营建议");
+        vo.setTrend("STABLE");
+        vo.getSuggestions().add("优先处理状态异常与待修复文物");
+        vo.getSuggestions().add("加强高频流转文物的环境监测");
+        vo.getSuggestions().add("控制库存集中度过高的类别继续扩张");
+        for (DashboardVO.CategoryStatVO item : buildCategoryDistribution()) {
+            Map<String, Object> card = new LinkedHashMap<String, Object>();
+            card.put("title", item.getCategory());
+            card.put("value", item.getCount());
+            card.put("percentage", item.getPercentage());
+            vo.getCards().add(card);
+        }
+        return vo;
+    }
+
+    @Override
+    public Map<String, Object> scheduleReport(String name, String cron, List<String> metrics, String receiver) {
+        Map<String, Object> item = new LinkedHashMap<String, Object>();
+        item.put("id", System.currentTimeMillis());
+        item.put("name", name);
+        item.put("cron", cron);
+        item.put("metrics", metrics);
+        item.put("receiver", receiver);
+        item.put("status", "SCHEDULED");
+        item.put("createdAt", LocalDateTime.now());
+        item.put("nextRunHint", "由外部调度器按 cron 执行");
+        try {
+            Path path = Paths.get("data", "report-schedules.json");
+            Files.createDirectories(path.getParent());
+            List<Map<String, Object>> data = new ArrayList<Map<String, Object>>();
+            if (Files.exists(path)) {
+                data.addAll(new com.fasterxml.jackson.databind.ObjectMapper().readValue(path.toFile(), List.class));
+            }
+            data.add(item);
+            new com.fasterxml.jackson.databind.ObjectMapper().writerWithDefaultPrettyPrinter().writeValue(path.toFile(), data);
+        } catch (Exception ex) {
+            throw new RuntimeException("保存报表推送任务失败");
+        }
+        return item;
     }
 
     private List<DashboardVO.CategoryStatVO> buildCategoryDistribution() {

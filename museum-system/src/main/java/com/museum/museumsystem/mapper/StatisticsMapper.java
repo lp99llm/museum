@@ -56,6 +56,41 @@ public interface StatisticsMapper extends BaseMapper<Artifact> {
             "WHERE e.status = 'FINISHED' ORDER BY ve.visitor_count DESC LIMIT 10")
     List<Map<String, Object>> getExhibitionEffects();
 
+    @Select("SELECT '出库' AS processName, ROUND(COALESCE(AVG(DATEDIFF(COALESCE(actual_return_date, CURDATE()), outbound_date)), 0), 1) AS avgDays FROM outbound WHERE outbound_date IS NOT NULL " +
+            "UNION ALL " +
+            "SELECT '修复' AS processName, ROUND(COALESCE(AVG(DATEDIFF(COALESCE(actual_end_date, CURDATE()), apply_date)), 0), 1) AS avgDays FROM restoration WHERE apply_date IS NOT NULL " +
+            "UNION ALL " +
+            "SELECT '外借' AS processName, ROUND(COALESCE(AVG(DATEDIFF(COALESCE(actual_return_date, CURDATE()), apply_date)), 0), 1) AS avgDays FROM loan WHERE apply_date IS NOT NULL " +
+            "UNION ALL " +
+            "SELECT '处置' AS processName, ROUND(COALESCE(AVG(DATEDIFF(COALESCE(archive_date, CURDATE()), apply_date)), 0), 1) AS avgDays FROM disposal WHERE apply_date IS NOT NULL " +
+            "UNION ALL " +
+            "SELECT '入库' AS processName, ROUND(COALESCE(AVG(DATEDIFF(storage_date, DATE(created_time))), 0), 1) AS avgDays FROM warehousing WHERE storage_date IS NOT NULL")
+    List<Map<String, Object>> getProcessDurationStats();
+
+    @Select("SELECT month, SUM(createdCount) AS createdCount, SUM(completedCount) AS completedCount FROM (" +
+            "SELECT DATE_FORMAT(created_time, '%Y-%m') AS month, COUNT(*) AS createdCount, SUM(CASE WHEN status IN ('RETURNED','COMPLETED','APPROVED') THEN 1 ELSE 0 END) AS completedCount FROM outbound GROUP BY month " +
+            "UNION ALL " +
+            "SELECT DATE_FORMAT(created_time, '%Y-%m') AS month, COUNT(*) AS createdCount, SUM(CASE WHEN status = 'COMPLETED' THEN 1 ELSE 0 END) AS completedCount FROM restoration GROUP BY month " +
+            "UNION ALL " +
+            "SELECT DATE_FORMAT(created_time, '%Y-%m') AS month, COUNT(*) AS createdCount, SUM(CASE WHEN status = 'RETURNED' THEN 1 ELSE 0 END) AS completedCount FROM loan GROUP BY month " +
+            "UNION ALL " +
+            "SELECT DATE_FORMAT(created_time, '%Y-%m') AS month, COUNT(*) AS createdCount, SUM(CASE WHEN status = 'APPROVED' THEN 1 ELSE 0 END) AS completedCount FROM disposal GROUP BY month " +
+            ") t GROUP BY month ORDER BY month DESC LIMIT 6")
+    List<Map<String, Object>> getProcessMonthlyTrend();
+
+    @Select("SELECT '出库' AS processName, COUNT(*) AS riskValue FROM outbound WHERE expected_return_date IS NOT NULL AND actual_return_date IS NULL AND expected_return_date < CURDATE() " +
+            "UNION ALL " +
+            "SELECT '修复' AS processName, COUNT(*) AS riskValue FROM restoration WHERE estimated_end_date IS NOT NULL AND actual_end_date IS NULL AND estimated_end_date < CURDATE() " +
+            "UNION ALL " +
+            "SELECT '外借' AS processName, COUNT(*) AS riskValue FROM loan WHERE expected_return_date IS NOT NULL AND actual_return_date IS NULL AND expected_return_date < CURDATE() " +
+            "UNION ALL " +
+            "SELECT '处置' AS processName, COUNT(*) AS riskValue FROM disposal WHERE status = 'REJECTED'")
+    List<Map<String, Object>> getProcessRiskStats();
+
+    @Select("SELECT COALESCE(location, '未设置') AS location, COALESCE(current_state, '未设置') AS state, COUNT(*) AS count " +
+            "FROM artifact GROUP BY location, current_state ORDER BY location, current_state")
+    List<Map<String, Object>> getSpaceHeatmapStats();
+
     @Select("<script>" +
             "SELECT * FROM artifact WHERE 1=1 " +
             "<if test='category != null and category != \"\"'> AND category = #{category} </if>" +

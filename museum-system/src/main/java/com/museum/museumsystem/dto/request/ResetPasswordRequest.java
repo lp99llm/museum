@@ -9,7 +9,7 @@ public class ResetPasswordRequest {
     private String username;
     @NotBlank
     private String email;
-    private String code;      // 验证码（可选）
+    private String code;
     @NotBlank
     private String newPassword;
 }

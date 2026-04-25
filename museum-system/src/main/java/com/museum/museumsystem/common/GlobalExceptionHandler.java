@@ -1,6 +1,10 @@
 package com.museum.museumsystem.common;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -48,9 +52,33 @@ public class GlobalExceptionHandler {
         return Result.error(e.getCode(), e.getMessage());
     }
 
+    @ExceptionHandler(BadCredentialsException.class)
+    public Result<Void> handleBadCredentialsException(BadCredentialsException e) {
+        log.warn("Login failed: bad credentials");
+        return Result.error(401, "用户名或密码错误");
+    }
+
+    @ExceptionHandler(DisabledException.class)
+    public Result<Void> handleDisabledException(DisabledException e) {
+        log.warn("Login failed: account disabled");
+        return Result.error(403, "账号已被禁用");
+    }
+
+    @ExceptionHandler(LockedException.class)
+    public Result<Void> handleLockedException(LockedException e) {
+        log.warn("Login failed: account locked");
+        return Result.error(403, "账号已被锁定");
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public Result<Void> handleAuthenticationException(AuthenticationException e) {
+        log.warn("Authentication failed: {}", e.getMessage());
+        return Result.error(401, "认证失败，请重新登录");
+    }
+
     @ExceptionHandler(Exception.class)
     public Result<Void> handleException(Exception e) {
-        log.error("系统异常：", e);
+        log.error("系统异常", e);
         return Result.error("系统繁忙，请稍后重试");
     }
 }
